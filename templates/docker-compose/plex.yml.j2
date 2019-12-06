@@ -1,0 +1,41 @@
+  plex-app:
+    container_name: 'plex-app'
+    hostname: mediaserver
+    image: plexinc/pms-docker
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=Europe/Moscow
+      - ADVERTISE_IP=http://{{ plex_advertise_ip }}:32400/
+      - PLEX_UID=1001
+      - PLEX_GID=1001
+    volumes:
+      - {{ base_dir }}/plex/config:/config
+      - {{ base_dir }}/plex/transcode:/transcode
+      - {{ plex_storage_dir }}:/data
+
+  plex-proxy:
+    container_name: 'plex-proxy'
+    image: nginx
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 80
+    labels:
+      - "traefik.enable=true"
+{% if plex_ssl_enable %}
+      - "traefik.http.routers.mediaserver.rule=Host(`{{ plex_sitename }}`)"
+      - "traefik.http.routers.mediaserver.entrypoints=https"
+      - "traefik.http.routers.mediaserver.tls=true"
+      - "traefik.http.routers.mediaserver.middlewares=security-headers-a@file"
+{% endif %}
+      - "traefik.http.routers.mediaserver-insecure.rule=Host(`{{ plex_sitename }}`)"
+      - "traefik.http.routers.mediaserver-insecure.entrypoints=http"
+{% if plex_ssl_redirect and plex_ssl_enable %}
+      - "traefik.http.routers.mediaserver-insecure.middlewares=https-redirect@file"
+{% else %}
+      - "traefik.http.routers.mediaserver-insecure.middlewares=security-headers-a@file"
+{% endif %}
+    volumes:
+      - {{ base_dir }}/plex/nginx/conf.d:/etc/nginx/conf.d:ro

@@ -1,0 +1,42 @@
+---
+# Nextcloud (Main instance) configuration
+- name: Create user 'www-data'
+  user:
+    name: "www-data"
+    comment: "Web Services user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
+
+- name: Create Nextcloud directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: www-data
+    group: www-data
+  loop:
+    - "{{ base_dir }}/nextcloud"
+    - "{{ base_dir }}/nextcloud/app"
+    - "{{ base_dir }}/nextcloud/db"
+    - "{{ base_dir }}/nextcloud/nginx"
+    - "{{ storage_dir }}/private"
+    - "{{ storage_dir }}/public"
+
+- name: Create Nextcloud common storage directories
+  file:
+    path: "{{ storage_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: www-data
+    group: www-data
+  when: nextcloud_common_storage is defined
+  loop: "{{ nextcloud_common_storage }}"
+
+- name: Generate nginx configuration file for Nextcloud
+  template:
+    src: "nextcloud/nginx.conf.j2"
+    dest: "{{ base_dir }}/nextcloud/nginx/nginx.conf"
+    force: yes
+    backup: yes
+  notify: restart_nextcloud

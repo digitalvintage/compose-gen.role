@@ -1,0 +1,42 @@
+---
+# Tick stack monitoring configuration
+- name: Create directories for Tick stack
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ base_dir }}/monitoring"
+    - "{{ base_dir }}/monitoring/telegraf"
+    - "{{ base_dir }}/monitoring/chronograf"
+    - "{{ base_dir }}/monitoring/chronograf/data"
+    - "{{ base_dir }}/monitoring/influxdb"
+    - "{{ base_dir }}/monitoring/influxdb/config"
+    - "{{ base_dir }}/monitoring/influxdb/data"
+    - "{{ base_dir }}/monitoring/kapacitor"
+    - "{{ base_dir }}/monitoring/kapacitor/config"
+    - "{{ base_dir }}/monitoring/kapacitor/data"
+
+- name: Generate Telegraf configuration file
+  template:
+    src: "monitoring/telegraf.conf.j2"
+    dest: "{{ base_dir }}/monitoring/telegraf/telegraf.conf"
+    force: yes
+    backup: yes
+  notify: restart_monitoring
+
+- name: Generate Influxdb configuration file
+  template:
+    src: "monitoring/influxdb.conf.j2"
+    dest: "{{ base_dir }}/monitoring/influxdb/config/influxdb.conf"
+    force: yes
+    backup: yes
+  notify: restart_monitoring
+
+- name: Generate Kapacitor configuration file
+  template:
+    src: "monitoring/kapacitor.conf.j2"
+    dest: "{{ base_dir }}/monitoring/kapacitor/config/kapacitor.conf"
+    force: yes
+    backup: yes
+  notify: restart_monitoring

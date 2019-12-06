@@ -1,0 +1,34 @@
+  nextcloud-db:
+    driver_opts:
+      type: "none"
+      device: "{{ base_dir }}/nextcloud/db"
+      o: "bind"
+
+  nextcloud-app:
+    driver_opts:
+      type: "none"
+      device: "{{ base_dir }}/nextcloud/app"
+      o: "bind"
+
+  storage-private:
+    driver_opts:
+      type: "none"
+      device: "{{ storage_dir }}/private"
+      o: "bind"
+
+  storage-public:
+    driver_opts:
+      type: "none"
+      device: "{{ storage_dir }}/public"
+      o: "bind"
+
+{% if nextcloud_common_storage is defined %}
+{% for item in nextcloud_common_storage %}
+  storage-{{ item }}:
+    driver_opts:
+      type: "none"
+      device: "{{ storage_dir }}/{{ item }}"
+      o: "bind"
+
+{% endfor %}
+{% endif %}

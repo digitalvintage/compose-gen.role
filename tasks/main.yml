@@ -1,0 +1,55 @@
+---
+# tasks file for compose-gen.role
+
+# Common tasks
+- name: Create working directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0775"
+  loop:
+    - "{{ compose_dir }}"
+    - "{{ base_dir }}"
+    - "{{ storage_dir }}"
+    - "{{ sites_dir }}"
+    - "{{ cloudstorage_dir }}"
+
+# Traefik configuration
+- include: traefik.yml
+
+# Tick stack monitoring configuration
+- include: monitoring.yml
+  when: monitoring_enabled
+
+# Nextcloud (Main instance) configuration
+- include: nextcloud.yml
+  when: nextcloud_enabled
+
+# Plex configuration
+- include: plex.yml
+  when: plex_enabled
+
+# Transmission configuration
+- include: transmission.yml
+  when: transmission_enabled
+
+# NFS Server configuration
+- include: nfs.yml
+  when: nfs is defined
+
+# Web sites configuration
+- include: websites.yml
+  when: websites is defined
+
+# Cloud storage instances configuration
+- include: cloudstorages.yml
+  when: cloudstorages is defined
+
+# Generate docker-compose file
+- name: Generate docker-compose
+  template:
+    src: "docker-compose/docker-compose.yml.j2"
+    dest: "{{ compose_dir }}/docker-compose.yml"
+    force: yes
+    backup: yes
+  notify: update_compose

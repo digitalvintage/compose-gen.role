@@ -1,0 +1,99 @@
+---
+# Web sites configuration
+- name: Create Web sites directory tree
+  file:
+    path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
+    state: directory
+    mode: "0755"
+  with_nested:
+    - "{{ websites | flatten(levels=1) }}"
+    - ["wwwroot", "db", "config", "config/nginx", "log"]
+
+- name: Create user 'mysql' for MySQL/Percona
+  user:
+    name: "mysql"
+    comment: "MySQL/Percona user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - >-
+      item.db_type is undefined
+      or (item.db_type is defined and item.db_type == "mysql")
+      or (item.db_type is defined and item.db_type == "percona")
+
+- name: Create database directories for MySQL/Percona
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/db/mysql"
+    state: directory
+    mode: "0755"
+    owner: polkitd
+    group: mysql
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - >-
+      item.db_type is undefined
+      or (item.db_type is defined and item.db_type == "mysql")
+      or (item.db_type is defined and item.db_type == "percona")
+
+- name: Create database directories for PostgreSQL
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/db/postgresql"
+    state: directory
+    mode: "0755"
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - item.db_type is defined and item.db_type == "postgresql"
+
+- name: Check if Web site needs to be initialized
+  find:
+    paths: "{{ sites_dir }}/{{ item.sitename }}/wwwroot"
+  register: site_to_init
+  loop: "{{ websites | flatten(levels=1) }}"
+  notify: init_site
+  changed_when: site_to_init.matched == 0
+
+- name: Generate nginx configuration files for php-fpm
+  template:
+    src: "www/vhost-fpm.conf.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
+    force: yes
+    backup: yes
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - >-
+      item.backend_type is undefined
+      or (item.backend_type is defined and item.backend_type == "fpm")
+  register: handle_restart_website_fpm
+  notify: restart_website
+
+- name: Remove unnecessary configuration for php-fpm
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
+    state: absent
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - item.backend_type is defined and item.backend_type == "apache"
+
+- name: Generate nginx configuration files for apache
+  template:
+    src: "www/vhost-apache.conf.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    force: yes
+    backup: yes
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - item.backend_type is defined and item.backend_type == "apache"
+  register: handle_restart_website_apache
+  notify: restart_website
+
+- name: Remove unnecessary configuration for apache
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    state: absent
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - >-
+      item.backend_type is undefined
+      or (item.backend_type is defined and item.backend_type == "fpm")

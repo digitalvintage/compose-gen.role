@@ -1,0 +1,132 @@
+  nextcloud-db:
+    container_name: 'nextcloud-db'
+    image: postgres
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 5432
+    volumes:
+      - nextcloud-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=nextcloud-dummy
+      - POSTGRES_USER={{ nextcloud_db_user }}
+      - POSTGRES_PASSWORD={{ nextcloud_db_password }}
+
+  nextcloud-redis:
+    container_name: 'nextcloud-redis'
+    image: redis
+    restart: always
+    networks:
+      - {{ docker_network }}
+
+  nextcloud-app:
+    container_name: 'nextcloud-app'
+    image: nextcloud:fpm
+    restart: always
+    expose:
+      - 9000
+    networks:
+      - {{ docker_network }}
+    depends_on:
+      - 'nextcloud-db'
+      - 'nextcloud-redis'
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - nextcloud-app:/var/www/html
+      - storage-private:/storage/private
+      - storage-public:/storage/public
+{% if nextcloud_common_storage is defined %}
+{% for item in nextcloud_common_storage %}
+      - storage-{{ item }}:/storage/{{ item }}
+{% endfor %}
+{% endif %}
+    environment:
+      - POSTGRES_HOST=nextcloud-db
+      - NEXTCLOUD_DATA_DIR=/storage/private
+      - NEXTCLOUD_TRUSTED_DOMAINS={{ nextcloud_sitename }}
+      - NEXTCLOUD_ADMIN_USER={{ nextcloud_admin_login }}
+      - NEXTCLOUD_ADMIN_PASSWORD={{ nextcloud_admin_password }}
+      - REDIS_HOST=nextcloud-redis
+      - POSTGRES_DB={{ nextcloud_db_name }}
+      - POSTGRES_USER={{ nextcloud_db_user }}
+      - POSTGRES_PASSWORD={{ nextcloud_db_password }}
+
+  nextcloud-cron:
+    container_name: 'nextcloud-cron'
+    image: nextcloud:fpm
+    restart: always
+    networks:
+      - {{ docker_network }}
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - nextcloud-app:/var/www/html
+      - storage-private:/storage/private
+      - storage-public:/storage/public
+{% if nextcloud_common_storage is defined %}
+{% for item in nextcloud_common_storage %}
+      - storage-{{ item }}:/storage/{{ item }}
+{% endfor %}
+{% endif %}
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    environment:
+      - POSTGRES_HOST=nextcloud-db
+      - NEXTCLOUD_DATA_DIR=/storage/private
+      - NEXTCLOUD_TRUSTED_DOMAINS={{ nextcloud_sitename }}
+      - NEXTCLOUD_ADMIN_USER={{ nextcloud_admin_login }}
+      - NEXTCLOUD_ADMIN_PASSWORD={{ nextcloud_admin_password }}
+      - REDIS_HOST=nextcloud-redis
+      - POSTGRES_DB={{ nextcloud_db_name }}
+      - POSTGRES_USER={{ nextcloud_db_user }}
+      - POSTGRES_PASSWORD={{ nextcloud_db_password }}
+
+  nextcloud-frontend:
+    container_name: 'nextcloud-frontend'
+    image: nginx
+    restart: always
+    expose:
+      - 80
+    networks:
+      - {{ docker_network }}
+    depends_on:
+      - 'nextcloud-app'
+    labels:
+      - "traefik.enable=true"
+{% if nextcloud_ssl_enable %}
+      - "traefik.http.routers.storage.rule=Host(`{{ nextcloud_sitename }}`)"
+      - "traefik.http.routers.storage.entrypoints=https"
+      - "traefik.http.routers.storage.tls=true"
+      - "traefik.http.routers.storage.middlewares=security-headers-a@file"
+{% endif %}
+      - "traefik.http.routers.storage-insecure.rule=Host(`{{ nextcloud_sitename }}`)"
+      - "traefik.http.routers.storage-insecure.entrypoints=http"
+{% if nextcloud_ssl_redirect and nextcloud_ssl_enable %}
+      - "traefik.http.routers.storage-insecure.middlewares=https-redirect@file"
+{% else %}
+      - "traefik.http.routers.storage-insecure.middlewares=security-headers-a@file"
+{% endif %}
+    volumes:
+      - {{ base_dir }}/nextcloud/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nextcloud-app:/var/www/html
+      - storage-private:/storage/private
+      - storage-public:/storage/public
+{% if nextcloud_common_storage is defined %}
+{% for item in nextcloud_common_storage %}
+      - storage-{{ item }}:/storage/{{ item }}
+{% endfor %}
+{% endif %}
+    environment:
+      - POSTGRES_HOST=nextcloud-db"
+      - NEXTCLOUD_DATA_DIR=/storage/private
+      - NEXTCLOUD_TRUSTED_DOMAINS={{ nextcloud_sitename }}
+      - NEXTCLOUD_ADMIN_USER={{ nextcloud_admin_login }}
+      - NEXTCLOUD_ADMIN_PASSWORD={{ nextcloud_admin_password }}
+      - REDIS_HOST=nextcloud-redis
+      - POSTGRES_DB={{ nextcloud_db_name }}
+      - POSTGRES_USER={{ nextcloud_db_user }}
+      - POSTGRES_PASSWORD={{ nextcloud_db_password }}

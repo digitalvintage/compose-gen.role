@@ -1,0 +1,32 @@
+---
+# Traefik configuration
+- name: Create Traefik directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ base_dir }}/traefik"
+    - "{{ base_dir }}/traefik/dynamic"
+
+- name: Generate traefik.toml - main configuration file
+  template:
+    src: "traefik/traefik.toml.j2"
+    dest: "{{ base_dir }}/traefik/traefik.toml"
+    force: yes
+    backup: yes
+  notify: restart_traefik
+
+- name: Generate Traefik middleware configuration file
+  template:
+    src: "traefik/middleware.toml.j2"
+    dest: "{{ base_dir }}/traefik/dynamic/middleware.toml"
+    force: yes
+    backup: yes
+
+- name: Create empty acme.json file
+  copy:
+    content: ""
+    dest: "{{ base_dir }}/traefik/acme.json"
+    force: no
+    mode: 0600

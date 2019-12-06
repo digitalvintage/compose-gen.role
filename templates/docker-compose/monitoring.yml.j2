@@ -1,0 +1,90 @@
+  mon-telegraf:
+    container_name: 'mon-telegraf'
+    image: telegraf:latest
+    restart: always
+    networks:
+      - {{ docker_network }}
+    environment:
+      HOST_PROC: /rootfs/proc
+      HOST_SYS: /rootfs/sys
+      HOST_ETC: /rootfs/etc
+    hostname: {{ ansible_hostname }}
+    volumes:
+     - {{ base_dir }}/monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /sys:/rootfs/sys:ro
+     - /proc:/rootfs/proc:ro
+     - /etc:/rootfs/etc:ro
+     - /var/run/docker.sock:/var/run/docker.sock
+
+  mon-influxdb:
+    container_name: 'mon-influxdb'
+    image: influxdb:latest
+    restart: always
+    networks:
+      - {{ docker_network }}
+    environment:
+      - INFLUXDB_DB=telegraf
+      - INFLUXDB_HTTP_ENABLED=true
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER={{ monitoring_influx_admin_user }}
+      - INFLUXDB_ADMIN_PASSWORD={{ monitoring_influx_admin_password }}
+      - INFLUXDB_READ_USER={{ monitoring_influx_read_user }}
+      - INFLUXDB_READ_USER_PASSWORD={{ monitoring_influx_read_password }}
+      - INFLUXDB_WRITE_USER={{ monitoring_influx_write_user }}
+      - INFLUXDB_WRITE_USER_PASSWORD={{ monitoring_influx_write_password }}
+    volumes:
+      - {{ base_dir }}/monitoring/influxdb/data/:/var/lib/influxdb/
+      - {{ base_dir }}/monitoring/influxdb/config/:/etc/influxdb/
+    ports:
+      - "8086:8086"
+      - "8082:8082"
+
+  mon-kapacitor:
+    container_name: 'mon-kapacitor'
+    image: kapacitor:latest
+    restart: always
+    networks:
+      - {{ docker_network }}
+    environment:
+      - KAPACITOR_HOSTNAME=mon-kapacitor
+      - KAPACITOR_LOGGING_LEVEL=INFO
+      - KAPACITOR_REPORTING_ENABLED=false
+    volumes:
+      - {{ base_dir }}/monitoring/kapacitor/data:/var/lib/kapacitor/
+      - {{ base_dir }}/monitoring/kapacitor/config/:/etc/kapacitor/
+    expose:
+      - 9092
+    depends_on:
+      - mon-influxdb
+
+  mon-chronograf:
+    container_name: 'mon-chronograf'
+    image: chronograf:latest
+    restart: always
+    networks:
+      - {{ docker_network }}
+    volumes:
+      - {{ base_dir }}/monitoring/chronograf/data/:/var/lib/chronograf/
+    expose:
+      - 8888
+    labels:
+      - "traefik.enable=true"
+{% if monitoring_ssl_enable %}
+      - "traefik.http.routers.chronograf.rule=Host(`{{ monitoring_sitename }}`)"
+      - "traefik.http.routers.chronograf.entrypoints=https"
+      - "traefik.http.routers.chronograf.tls=true"
+      - "traefik.http.routers.chronograf.middlewares=security-headers-a-plus@file, chronograf-auth"
+{% endif %}
+      - "traefik.http.routers.chronograf-insecure.rule=Host(`{{ monitoring_sitename }}`)"
+      - "traefik.http.routers.chronograf-insecure.entrypoints=http"
+{% if monitoring_ssl_redirect and monitoring_ssl_enable %}
+      - "traefik.http.routers.chronograf-insecure.middlewares=https-redirect@file"
+{% else %}
+      - "traefik.http.routers.chronograf-insecure.middlewares=security-headers-a-plus@file, chronograf-auth"
+{% endif %}
+      - "traefik.http.services.chronograf.loadbalancer.server.port=8888"
+      - "traefik.http.services.chronograf.loadbalancer.server.scheme=http"
+      - "traefik.http.middlewares.chronograf-auth.basicauth.users={{ monitoring_dashboard_auth_string }}"
+    depends_on:
+      - mon-influxdb

@@ -1,0 +1,29 @@
+  nfs-server:
+    container_name: nfs-server
+    image: erichough/nfs-server
+    privileged: true
+    restart: always
+    networks:
+      - {{ docker_network }}
+    ports:
+      - 111:111
+      - 111:111/udp
+      - 2049:2049
+      - 2049:2049/udp
+      - 32765:32765
+      - 32765:32765/udp
+      - 32767:32767
+      - 32767:32767/udp
+    volumes:
+      - {{ base_dir }}/nfs:/share
+    environment:
+{% set counter = 0 %}
+{% for item in nfs %}
+{% set delimiter = "" %}
+{% if item.acl is defined %}
+      - NFS_EXPORT_{{ counter|string }}=/share/{{ item.share }} {% for aclentry in item.acl %}{{ delimiter }}{% set delimiter = " " %}{{ aclentry }}{% endfor %}
+{% else %}
+      - NFS_EXPORT_{{ counter|string }}=/share/{{ item.share }} ansible_default_ipv4.address + "/32(rw,no_subtree_check,no_root_squash)
+{% endif %}
+{% set counter = counter + 1 %}
+{% endfor %}

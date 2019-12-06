@@ -1,0 +1,21 @@
+---
+# Plex configuration
+- name: Create Plex directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ base_dir }}/plex"
+    - "{{ base_dir }}/plex/config"
+    - "{{ base_dir }}/plex/transcode"
+    - "{{ base_dir }}/plex/nginx"
+    - "{{ base_dir }}/plex/nginx/conf.d"
+
+- name: Generate nginx configuration file for Plex
+  template:
+    src: "plex/vhost.conf.j2"
+    dest: "{{ base_dir }}/plex/nginx/conf.d/vhost.conf"
+    force: yes
+    backup: yes
+  notify: restart_plex

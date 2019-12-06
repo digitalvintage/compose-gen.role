@@ -1,0 +1,17 @@
+---
+# Transmission configuration
+- name: Create Transmission directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ base_dir }}/transmission"
+
+- name: Generate Transmission configuration file
+  template:
+    src: "transmission/settings.json.j2"
+    dest: "{{ base_dir }}/transmission/settings.json.bak"
+    force: yes
+    backup: yes
+  notify: restart_transmission

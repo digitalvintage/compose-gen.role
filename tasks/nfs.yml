@@ -1,0 +1,28 @@
+---
+# NFS Server configuration
+
+- name: Check/Install nfs kernel module
+  command: "modprobe nfs -v"
+  register: modprobe_result
+  changed_when: modprobe_result.stdout != ""
+
+- name: Check/Install nfs kernel module
+  command: "modprobe nfsd -v"
+  register: modprobe_result
+  changed_when: modprobe_result.stdout != ""
+
+- name: Create NFS working directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ base_dir }}/nfs"
+
+- name: Create NFS shares directories
+  file:
+    path: "{{ base_dir }}/nfs/{{ item.share }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ nfs | flatten(levels=1) }}"
+  notify: restart_nfs

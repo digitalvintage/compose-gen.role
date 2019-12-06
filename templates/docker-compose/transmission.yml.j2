@@ -1,0 +1,38 @@
+  transmission:
+    container_name: transmission
+    hostname: transmission
+    image: linuxserver/transmission
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 9091
+    ports:
+      - {{ transmission_torrent_port }}:{{ transmission_torrent_port }}/tcp
+      - {{ transmission_torrent_port }}:{{ transmission_torrent_port }}/udp
+    labels:
+      - "traefik.enable=true"
+{% if transmission_ssl_enable %}
+      - "traefik.http.routers.loader.rule=Host(`{{ transmission_sitename }}`)"
+      - "traefik.http.routers.loader.entrypoints=https"
+      - "traefik.http.routers.loader.tls=true"
+      - "traefik.http.routers.loader.middlewares=security-headers-a-plus@file, loader-auth"
+{% endif %}
+      - "traefik.http.routers.loader-insecure.rule=Host(`{{ transmission_sitename }}`)"
+      - "traefik.http.routers.loader-insecure.entrypoints=http"
+{% if transmission_ssl_redirect and transmission_ssl_enable %}
+      - "traefik.http.routers.loader-insecure.middlewares=https-redirect@file"
+{% else %}
+      - "traefik.http.routers.loader-insecure.middlewares=security-headers-a@file, loader-auth"
+{% endif %}
+      - "traefik.http.services.loader.loadbalancer.server.port=9091"
+      - "traefik.http.services.loader.loadbalancer.server.scheme=http"
+      - "traefik.http.middlewares.loader-auth.basicauth.users={{ transmission_dashboard_auth_string }}"
+    volumes:
+      - {{ base_dir }}/transmission:/config
+      - {{ transmission_download_dir }}:/downloads
+      - {{ transmission_watch_dir }}:/watch
+    environment:
+      - PGID=1001
+      - PUID=1001
+      - TZ=Europe/Moscow
