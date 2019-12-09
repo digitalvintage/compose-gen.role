@@ -17,14 +17,14 @@
       - "traefik.http.routers.transmission.entrypoints=https"
       - "traefik.http.routers.transmission.tls.certresolver=default"
       - "traefik.http.routers.transmission.tls=true"
-      - "traefik.http.routers.transmission.middlewares=security-headers-a-plus@file, loader-auth"
+      - "traefik.http.routers.transmission.middlewares=security-headers-a-plus@file, transmission-auth"
 {% endif %}
       - "traefik.http.routers.transmission-insecure.rule=Host(`{{ transmission_sitename }}`)"
       - "traefik.http.routers.transmission-insecure.entrypoints=http"
 {% if transmission_ssl_redirect and transmission_ssl_enable %}
       - "traefik.http.routers.transmission-insecure.middlewares=https-redirect@file"
 {% else %}
-      - "traefik.http.routers.transmission-insecure.middlewares=security-headers-a@file, loader-auth"
+      - "traefik.http.routers.transmission-insecure.middlewares=security-headers-a@file, transmission-auth"
 {% endif %}
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
       - "traefik.http.services.transmission.loadbalancer.server.scheme=http"
