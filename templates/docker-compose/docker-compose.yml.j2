@@ -53,14 +53,19 @@ services:
 # End of Cloud Storage instances
 {% endif %}
 
-{% if nextcloud_enabled %}
+{% if nfs is defined or nextcloud_enabled %}
 # Definition of Docker Volumes
 volumes:
+{% if nfs is defined %}
+{% include "docker-compose/nfs-volumes.yml.j2" with context %}
+{% endif %}
+
+{% if nextcloud_enabled %}
 
 # NextCloud Private Cloud Storage Volmes (Main Instance)
 {% include "docker-compose/nextcloud-volumes.yml.j2" with context %}
 # End of Cloud Storage volumes
-
+{% endif %}
 # End of Docker Volumes
 {% endif %}
 

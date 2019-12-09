@@ -15,7 +15,7 @@
       - 32767:32767
       - 32767:32767/udp
     volumes:
-      - {{ base_dir }}/nfs:/share
+      - nfs-share:/share
     environment:
 {% set counter = 0 %}
 {% for item in nfs %}

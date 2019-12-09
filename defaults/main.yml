@@ -39,7 +39,7 @@ monitoring_ssl_redirect: true
 
 # Main Nextcloud instance config (Transmission and Plex will work only with this instance)
 nextcloud_enabled: false
-nextcloud_sitenames: "storage.example.com"
+nextcloud_sitename: "storage.example.com"
 nextcloud_admin_login: "admin"
 nextcloud_admin_password: "{{ default_password }}"
 nextcloud_db_name: "nextcloud"
@@ -53,7 +53,7 @@ nextcloud_ssl_redirect: true
 
 # Plex Mediaserver config
 plex_enabled: false
-plex_sitenames: "plex.example.com"
+plex_sitename: "plex.example.com"
 plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
 plex_storage_dir: "{{ storage_dir }}/public"
 plex_ssl_enable: true
@@ -61,7 +61,7 @@ plex_ssl_redirect: true
 
 # Transmission bit-torrent client config
 transmission_enabled: false
-transmission_sitenames: "loader.example.com"
+transmission_sitename: "loader.example.com"
 transmission_dashboard_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 transmission_torrent_port: 54321
 transmission_download_dir: "{{ storage_dir }}/public/downloads"
