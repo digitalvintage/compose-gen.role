@@ -98,17 +98,18 @@
     labels:
       - "traefik.enable=true"
 {% if nextcloud_ssl_enable %}
-      - "traefik.http.routers.storage.rule=Host(`{{ nextcloud_sitename }}`)"
-      - "traefik.http.routers.storage.entrypoints=https"
-      - "traefik.http.routers.storage.tls=true"
-      - "traefik.http.routers.storage.middlewares=security-headers-a@file"
+      - "traefik.http.routers.nextcloud.rule=Host(`{{ nextcloud_sitename }}`)"
+      - "traefik.http.routers.nextcloud.entrypoints=https"
+      - "traefik.http.routers.nextcloud.tls.certresolver=default"
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.routers.nextcloud.middlewares=security-headers-a@file"
 {% endif %}
-      - "traefik.http.routers.storage-insecure.rule=Host(`{{ nextcloud_sitename }}`)"
-      - "traefik.http.routers.storage-insecure.entrypoints=http"
+      - "traefik.http.routers.nextcloud-insecure.rule=Host(`{{ nextcloud_sitename }}`)"
+      - "traefik.http.routers.nextcloud-insecure.entrypoints=http"
 {% if nextcloud_ssl_redirect and nextcloud_ssl_enable %}
-      - "traefik.http.routers.storage-insecure.middlewares=https-redirect@file"
+      - "traefik.http.routers.nextcloud-insecure.middlewares=https-redirect@file"
 {% else %}
-      - "traefik.http.routers.storage-insecure.middlewares=security-headers-a@file"
+      - "traefik.http.routers.nextcloud-insecure.middlewares=security-headers-a@file"
 {% endif %}
     volumes:
       - {{ base_dir }}/nextcloud/nginx/nginx.conf:/etc/nginx/nginx.conf:ro

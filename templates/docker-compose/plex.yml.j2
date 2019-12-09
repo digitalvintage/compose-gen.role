@@ -28,6 +28,7 @@
       - "traefik.http.routers.mediaserver.rule=Host(`{{ plex_sitename }}`)"
       - "traefik.http.routers.mediaserver.entrypoints=https"
       - "traefik.http.routers.mediaserver.tls=true"
+      - "traefik.http.routers.mediaserver.tls.certresolver=default"
       - "traefik.http.routers.mediaserver.middlewares=security-headers-a@file"
 {% endif %}
       - "traefik.http.routers.mediaserver-insecure.rule=Host(`{{ plex_sitename }}`)"

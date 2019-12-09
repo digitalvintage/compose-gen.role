@@ -15,6 +15,7 @@
 {% if transmission_ssl_enable %}
       - "traefik.http.routers.loader.rule=Host(`{{ transmission_sitename }}`)"
       - "traefik.http.routers.loader.entrypoints=https"
+      - "traefik.http.routers.loader.tls.certresolver=default"
       - "traefik.http.routers.loader.tls=true"
       - "traefik.http.routers.loader.middlewares=security-headers-a-plus@file, loader-auth"
 {% endif %}

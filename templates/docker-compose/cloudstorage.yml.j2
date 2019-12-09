@@ -148,21 +148,22 @@
       - "traefik.enable=true"
 {% if ssl_enable %}
 {% if add_www_host %}
-      - "traefik.http.routers.{{ sitename_hyphened }}.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
 {% else %}
-      - "traefik.http.routers.{{ sitename_hyphened }}.rule=Host(`{{ sitename }}`)"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.rule=Host(`{{ sitename }}`)"
 {% endif %}
-      - "traefik.http.routers.{{ sitename_hyphened }}.entrypoints=https"
-      - "traefik.http.routers.{{ sitename_hyphened }}.tls=true"
-      - "traefik.http.routers.{{ sitename_hyphened }}.middlewares={{ middleware_list }}"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.entrypoints=https"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.tls=true"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.tls.certresolver=default"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud.middlewares={{ middleware_list }}"
 {% endif %}
 {% if add_www_host %}
-      - "traefik.http.routers.{{ sitename_hyphened }}-insecure.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud-insecure.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
 {% else %}
-      - "traefik.http.routers.{{ sitename_hyphened }}-insecure.rule=Host(`{{ sitename }}`)"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud-insecure.rule=Host(`{{ sitename }}`)"
 {% endif %}
-      - "traefik.http.routers.{{ sitename_hyphened }}-insecure.entrypoints=http"
-      - "traefik.http.routers.{{ sitename_hyphened }}-insecure.middlewares={{ middleware_insecure_list }}"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud-insecure.entrypoints=http"
+      - "traefik.http.routers.{{ sitename_hyphened }}-nextcloud-insecure.middlewares={{ middleware_insecure_list }}"
     volumes:
       - {{ cloudstorage_dir }}/{{ sitename }}-nextcloud/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - {{ cloudstorage_dir }}/{{ sitename }}-nextcloud/app:/var/www/html

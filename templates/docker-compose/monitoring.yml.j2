@@ -74,6 +74,7 @@
       - "traefik.http.routers.chronograf.rule=Host(`{{ monitoring_sitename }}`)"
       - "traefik.http.routers.chronograf.entrypoints=https"
       - "traefik.http.routers.chronograf.tls=true"
+      - "traefik.http.routers.chronograf.tls.certresolver=default"
       - "traefik.http.routers.chronograf.middlewares=security-headers-a-plus@file, chronograf-auth"
 {% endif %}
       - "traefik.http.routers.chronograf-insecure.rule=Host(`{{ monitoring_sitename }}`)"

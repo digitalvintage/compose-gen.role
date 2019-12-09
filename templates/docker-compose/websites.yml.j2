@@ -112,6 +112,7 @@
       - "traefik.http.routers.{{ sitename_hyphened }}.rule=Host(`{{ sitename }}`)"
 {% endif %}
       - "traefik.http.routers.{{ sitename_hyphened }}.entrypoints=https"
+      - "traefik.http.routers.{{ sitename_hyphened }}.tls.certresolver=default"
       - "traefik.http.routers.{{ sitename_hyphened }}.tls=true"
       - "traefik.http.routers.{{ sitename_hyphened }}.middlewares={{ middleware_list }}"
 {% endif %}
