@@ -54,10 +54,19 @@
       [certificatesResolvers.default.acme.httpChallenge]
         entryPoint = "http"
 
-#[metrics]
-#  [metrics.prometheus]
-#    buckets = [0.1, 0.3, 1.2, 5.0]
-#    entryPoint = "traefik"
-
 [log]
   level = "ERROR"
+
+{% if monitoring_enabled %}
+[metrics]
+  [metrics.influxDB]
+    protocol = "http"
+    address = "http://{{ ansible_default_ipv4.address }}:8086"
+    database = "telegraf"
+    retentionPolicy = ""
+    username = "{{ monitoring_influx_write_user }}"
+    password = "{{ monitoring_influx_write_password }}"
+    addEntryPointsLabels = true
+    addServicesLabels = true
+    pushInterval = "10s"
+{% endif %}
