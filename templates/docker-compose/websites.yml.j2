@@ -134,7 +134,8 @@
 {% if backend_type == 'apache' %}
   {{ sitename }}-apache:
     container_name: {{ sitename }}-apache
-    image: php:{{backend_version}}-apache
+    #image: php:{{backend_version}}-apache
+    build: ./images/php-{{backend_version}}-apache
     restart: always
     networks:
       - {{ docker_network }}
@@ -146,7 +147,8 @@
 {% else %}
   {{ sitename }}-fpm:
     container_name: {{ sitename }}-fpm
-    image: php:{{backend_version}}-fpm
+    #image: php:{{backend_version}}-fpm
+    build: ./images/php-fpm-{{backend_version}}
     restart: always
     networks:
       - {{ docker_network }}
