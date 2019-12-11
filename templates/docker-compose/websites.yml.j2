@@ -1,76 +1,20 @@
 {% for item in websites %}
   {% set sitename = item.sitename %}
   {% set sitename_hyphened = item.sitename | replace('.','-') %}
-  {% if item.add_www_host is undefined %}
-    {% set add_www_host = true %}
-  {% else %}
-    {% set add_www_host = item.add_www_host %}
-  {% endif %}
-  {% if item.ssl_enable is undefined %}
-    {% set ssl_enable = true %}
-  {% else %}
-    {% set ssl_enable = item.ssl_enable %}
-  {% endif %}
-  {% if item.ssl_redirect is undefined %}
-    {% set ssl_redirect = true %}
-  {% else %}
-    {% set ssl_redirect = item.ssl_redirect %}
-  {% endif %}
-  {% if item.www_redirect is undefined %}
-    {% set www_redirect = true %}
-  {% else %}
-    {% set www_redirect = item.www_redirect %}
-  {% endif %}
-  {% if item.extended_security_headers is undefined %}
-    {% set extended_security_headers = false %}
-  {% else %}
-    {% set extended_security_headers = item.extended_security_headers %}
-  {% endif %}
-  {% if item.http_auth_enable is undefined %}
-    {% set http_auth_enable = false %}
-  {% else %}
-    {% set http_auth_enable = item.http_auth_enable %}
-  {% endif %}
-  {% if item.http_auth_string is undefined %}
-    {% set http_auth_string = item.sitename %}
-  {% else %}
-    {% set http_auth_string = item.http_auth_string %}
-  {% endif %}
-  {% if item.backend_type is undefined %}
-    {% set backend_type = "fpm" %}
-  {% else %}
-    {% set backend_type = item.backend_type %}
-  {% endif %}
-  {% if item.backend_version is undefined %}
-    {% set backend_version = "7.3" %}
-  {% else %}
-    {% set backend_version = item.backend_version %}
-  {% endif %}
-  {% if item.db_type is undefined %}
-    {% set db_type = "percona" %}
-  {% else %}
-    {% set db_type = item.db_type %}
-  {% endif %}
-  {% if item.db_name is undefined %}
-    {% set db_name = item.sitename | replace('.','-') %}
-  {% else %}
-    {% set db_name = item.db_name | replace('.','-') %}
-  {% endif %}
-  {% if item.db_user is undefined %}
-    {% set db_user = item.sitename | replace('.','-') %}
-  {% else %}
-    {% set db_user = item.db_user | replace('.','-') %}
-  {% endif %}
-  {% if item.db_password is undefined %}
-    {% set db_password = default_password %}
-  {% else %}
-    {% set db_password = item.db_password %}
-  {% endif %}
-  {% if item.db_root_password is undefined %}
-    {% set db_root_password = default_password %}
-  {% else %}
-    {% set db_root_password = item.db_root_password %}
-  {% endif %}
+  {% set ssl_enable = item.ssl_enable | default (default_ssl_enable) %}
+  {% set ssl_redirect = item.ssl_redirect | default (default_ssl_redirect) %}
+  {% set add_www_host = item.add_www_host | default (default_add_www_host) %}
+  {% set www_redirect = item.www_redirect | default (default_www_redirect) %}
+  {% set extended_security_headers = item.extended_security_headers | default (false) %}
+  {% set http_auth_enable = item.http_auth_enable | default (false) %}
+  {% set http_auth_string = item.http_auth_string | default (default_auth_string) %}
+  {% set backend_type = item.backend_type | default (default_backend_type) %}
+  {% set backend_php_version = item.backend_php_version | default (default_php_version) %}
+  {% set db_type = item.db_type | default (default_db_type) %}
+  {% set db_name = item.db_name | default (item.sitename) | replace('.','-') %}
+  {% set db_user = item.db_user | default (item.sitename) | replace('.','-') %}
+  {% set db_password = item.db_password | default (default_password) %}
+  {% set db_root_password = item.db_root_password | default (default_db_root_password) %}
   {% if extended_security_headers %}
     {% set middleware_list = 'security-headers-a-plus@file' %}
     {% set middleware_insecure_list = 'security-headers-a-plus@file' %}
@@ -134,8 +78,7 @@
 {% if backend_type == 'apache' %}
   {{ sitename }}-apache:
     container_name: {{ sitename }}-apache
-    #image: php:{{backend_version}}-apache
-    build: ./images/php-{{backend_version}}-apache
+    build: ./images/php-{{backend_php_version}}-apache
     restart: always
     networks:
       - {{ docker_network }}
@@ -148,8 +91,7 @@
 {% else %}
   {{ sitename }}-fpm:
     container_name: {{ sitename }}-fpm
-    #image: php:{{backend_version}}-fpm
-    build: ./images/php-fpm-{{backend_version}}
+    build: ./images/php-fpm-{{backend_php_version}}
     restart: always
     networks:
       - {{ docker_network }}

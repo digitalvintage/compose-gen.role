@@ -1,51 +1,15 @@
 {% for item in cloudstorages %}
   {% set sitename = item.sitename %}
   {% set sitename_hyphened = item.sitename | replace('.','-') %}
-  {% if item.add_www_host is undefined %}
-    {% set add_www_host = true %}
-  {% else %}
-    {% set add_www_host = item.add_www_host %}
-  {% endif %}
-  {% if item.ssl_enable is undefined %}
-    {% set ssl_enable = true %}
-  {% else %}
-    {% set ssl_enable = item.ssl_enable %}
-  {% endif %}
-  {% if item.ssl_redirect is undefined %}
-    {% set ssl_redirect = true %}
-  {% else %}
-    {% set ssl_redirect = item.ssl_redirect %}
-  {% endif %}
-  {% if item.www_redirect is undefined %}
-    {% set www_redirect = true %}
-  {% else %}
-    {% set www_redirect = item.www_redirect %}
-  {% endif %}
-  {% if item.admin_login is undefined %}
-    {% set admin_login = "admin" %}
-  {% else %}
-    {% set admin_login = item.admin_login %}
-  {% endif %}
-  {% if item.db_password is undefined %}
-    {% set admin_password = default_password %}
-  {% else %}
-    {% set admin_password = item.admin_password %}
-  {% endif %}
-  {% if item.db_name is undefined %}
-    {% set db_name = "nextcloud" %}
-  {% else %}
-    {% set db_name = item.db_name %}
-  {% endif %}
-  {% if item.db_user is undefined %}
-    {% set db_user = "nextcloud" %}
-  {% else %}
-    {% set db_user = item.db_user %}
-  {% endif %}
-  {% if item.db_password is undefined %}
-    {% set db_password = default_password %}
-  {% else %}
-    {% set db_password = item.db_password %}
-  {% endif %}
+  {% set ssl_enable = item.ssl_enable | default (default_ssl_enable) %}
+  {% set ssl_redirect = item.ssl_redirect | default (default_ssl_redirect) %}
+  {% set add_www_host = item.add_www_host | default (default_add_www_host) %}
+  {% set www_redirect = item.www_redirect | default (default_www_redirect) %}
+  {% set admin_login = item.admin_login | default ('admin') %}
+  {% set admin_password = item.admin_password | default (default_password) %}
+  {% set db_name = item.db_name | default ('nextcloud') | replace('.','-') %}
+  {% set db_user = item.db_user | default ('nextcloud') | replace('.','-') %}
+  {% set db_password = item.db_password | default (default_password) %}
   {% set middleware_list = 'security-headers-a@file' %}
   {% set middleware_insecure_list = 'security-headers-a@file' %}
   {% if ssl_redirect and ssl_enable %}

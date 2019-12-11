@@ -10,8 +10,19 @@ sites_dir: "/var/www"
 docker_network: "net-webapps"
 default_password: "password"
 acme_email: "admin@example.com"
+
 # Set to 'false' if you want run 'docker-compose up -d' by yourself
 update_compose: true
+
+# Common Defaults
+default_backend_type: 'fpm'
+default_php_version: '7.3'
+default_db_type: 'percona'
+default_ssl_enable: true
+default_ssl_redirect: true
+default_add_www_host: true
+default_www_redirect: true
+default_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
 #  Dependent common variables
 cloudstorage_dir: "{{ sites_dir }}"
@@ -20,22 +31,22 @@ default_db_root_password: "{{ default_password }}"
 # Traefik config
 traefik_dashboard: true
 traefik_dashboard_host: "traefik.example.com"
-traefik_dashboard_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
-traefik_ssl_enable: true
-traefik_ssl_redirect: true
+traefik_dashboard_auth_string: "{{ default_auth_string }}"
+traefik_ssl_enable: "{{ default_ssl_enable }}"
+traefik_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Tick Stack monitoring config
 monitoring_enabled: true
 monitoring_sitename: "monitoring.example.com"
-monitoring_dashboard_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
+monitoring_dashboard_auth_string: "{{ default_auth_string }}"
 monitoring_influx_admin_user: "influx"
 monitoring_influx_admin_password: "{{ default_password }}"
 monitoring_influx_read_user: "chronograf"
 monitoring_influx_read_password: "{{ default_password }}"
 monitoring_influx_write_user: "telegraf"
 monitoring_influx_write_password: "{{ default_password }}"
-monitoring_ssl_enable: true
-monitoring_ssl_redirect: true
+monitoring_ssl_enable: "{{ default_ssl_enable }}"
+monitoring_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Main Nextcloud instance config (Transmission and Plex will work only with this instance)
 nextcloud_enabled: false
@@ -45,8 +56,8 @@ nextcloud_admin_password: "{{ default_password }}"
 nextcloud_db_name: "nextcloud"
 nextcloud_db_user: "nextcloud"
 nextcloud_db_password: "{{ default_password }}"
-nextcloud_ssl_enable: true
-nextcloud_ssl_redirect: true
+nextcloud_ssl_enable: "{{ default_ssl_enable }}"
+nextcloud_ssl_redirect: "{{ default_ssl_redirect }}"
 #nextcloud_common_storage:
 #  - secret
 #  - books
@@ -56,18 +67,18 @@ plex_enabled: false
 plex_sitename: "plex.example.com"
 plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
 plex_storage_dir: "{{ storage_dir }}/public"
-plex_ssl_enable: true
-plex_ssl_redirect: true
+plex_ssl_enable: "{{ default_ssl_enable }}"
+plex_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Transmission bit-torrent client config
 transmission_enabled: false
 transmission_sitename: "loader.example.com"
-transmission_dashboard_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
+transmission_dashboard_auth_string: "{{ default_auth_string }}"
 transmission_torrent_port: 54321
 transmission_download_dir: "{{ storage_dir }}/public/downloads"
 transmission_watch_dir: "{{ storage_dir }}/public/watch"
-transmission_ssl_enable: true
-transmission_ssl_redirect: true
+transmission_ssl_enable: "{{ default_ssl_enable }}"
+transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Examples of NFS v3 shares, websites and cloud storage (Nextcloud based) config
 # Define them in host vars file.
@@ -81,16 +92,16 @@ transmission_ssl_redirect: true
 # Websites config
 # websites:
 #  - sitename: "example.com"
-#    ssl_enable: true
+#    ssl_enable: "{{ default_ssl_enable }}"
 #    ssl_redirect: true
-#    add_www_host: true
-#    www_redirect: true
+#    add_www_host: "{{ default_add_www_host }}"
+#    www_redirect: "{{ default_www_redirect }}"
 #    extended_security_headers: false
 #    http_auth_enable: false
-#    http_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
-#    backend_type: "fpm" | "apache"
-#    backend_php_version: "7.3"
-#    db_type: "percona" | "mysql" | "postgresql"
+#    http_auth_string: "{{ default_auth_string }}"
+#    backend_type: "{{ default_backend_type }}" | "fpm" | "apache"
+#    backend_php_version: "{{ default_php_version }}"
+#    db_type: "{{ default_db_type }}" | "percona" | "mysql" | "postgresql"
 #    db_name: "{{ sitename-hyphened }}"
 #    db_user: "{{ sitename-hyphened }}"
 #    db_password: "{{ default_password }}"
@@ -100,10 +111,10 @@ transmission_ssl_redirect: true
 # Cloud storage (Nextcloud based) config
 # cloudstorages:
 #  - sitename: "storage.example.com"
-#    ssl_enable: true
-#    ssl_redirect: true
-#    add_www_host: true
-#    www_redirect: true
+#    ssl_enable: "{{ default_ssl_enable }}"
+#    ssl_redirect:  "{{ default_ssl_redirect }}"
+#    add_www_host: "{{ default_add_www_host }}"
+#    www_redirect: "{{ default_www_redirect }}"
 #    admin_login: "admin"
 #    admin_password: {{ default_password }}
 #    db_name: "nextcloud"

@@ -19,10 +19,9 @@
     home: "{{ sites_dir }}"
   loop: "{{ websites | flatten(levels=1) }}"
   when:
-    - >-
-      item.db_type is undefined
-      or (item.db_type is defined and item.db_type == "mysql")
-      or (item.db_type is defined and item.db_type == "percona")
+    - item.db_type | default (default_db_type) == "percona"
+    - item.db_type | default (default_db_type) == "mysql"
+
 
 - name: Create database directories for MySQL/Percona
   file:
@@ -33,10 +32,9 @@
     group: mysql
   loop: "{{ websites | flatten(levels=1) }}"
   when:
-    - >-
-      item.db_type is undefined
-      or (item.db_type is defined and item.db_type == "mysql")
-      or (item.db_type is defined and item.db_type == "percona")
+    - item.db_type | default (default_db_type) == "percona"
+    - item.db_type | default (default_db_type) == "mysql"
+
 
 - name: Create database directories for PostgreSQL
   file:
@@ -45,7 +43,7 @@
     mode: "0755"
   loop: "{{ websites | flatten(levels=1) }}"
   when:
-    - item.db_type is defined and item.db_type == "postgresql"
+    - item.db_type | default (default_db_type) == "postgresql"
 
 - name: Check if Web site needs to be initialized
   find:
@@ -62,10 +60,7 @@
     force: yes
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - >-
-      item.backend_type is undefined
-      or (item.backend_type is defined and item.backend_type == "fpm")
+  when: item.backend_type | default (default_backend_type) == "fpm"
   register: handle_restart_frontend_fpm
   notify: restart_frontend
 
@@ -76,8 +71,7 @@
     force: yes
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - item.backend_type is defined and item.backend_type == "apache"
+  when: item.backend_type | default (default_backend_type) == "apache"
   register: handle_restart_frontend_apache
   notify: restart_frontend
 
@@ -86,18 +80,15 @@
     path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
     state: absent
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - item.backend_type is defined and item.backend_type == "apache"
+  when: item.backend_type | default (default_backend_type) == "apache"
 
 - name: Remove unnecessary configuration for apache
   file:
     path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
     state: absent
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - >-
-      item.backend_type is undefined
-      or (item.backend_type is defined and item.backend_type == "fpm")
+  when: item.backend_type | default (default_backend_type) == "fpm"
+
 
 - name: Generate php configuration file
   template:
@@ -106,9 +97,5 @@
     force: yes
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - >-
-      item.backend_type is undefined
-      or (item.backend_type is defined and item.backend_type != "custom")
   register: handle_restart_backend_php
   notify: restart_backend

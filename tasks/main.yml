@@ -38,6 +38,9 @@
   when: nfs is defined
 
 # Web sites configuration
+- include: websites-dockerimages.yml
+  when: websites is defined
+
 - include: websites.yml
   when: websites is defined
 
@@ -52,4 +55,4 @@
     dest: "{{ compose_dir }}/docker-compose.yml"
     force: yes
     backup: yes
-  notify: update_compose
+  notify: compose_update
