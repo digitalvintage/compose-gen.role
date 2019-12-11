@@ -8,8 +8,10 @@ base_dir: "/var/services"
 storage_dir: "/var/data"
 sites_dir: "/var/www"
 docker_network: "net-webapps"
-default_password: "password"
 acme_email: "admin@example.com"
+default_tld: "example.com"
+default_password: "password"
+default_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
 # Set to 'false' if you want run 'docker-compose up -d' by yourself
 update_compose: true
@@ -22,7 +24,6 @@ default_ssl_enable: true
 default_ssl_redirect: true
 default_add_www_host: true
 default_www_redirect: true
-default_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
 #  Dependent common variables
 cloudstorage_dir: "{{ sites_dir }}"
@@ -30,14 +31,14 @@ default_db_root_password: "{{ default_password }}"
 
 # Traefik config
 traefik_dashboard: true
-traefik_dashboard_host: "traefik.example.com"
+traefik_dashboard_host: "traefik.{{ default_tld }}"
 traefik_dashboard_auth_string: "{{ default_auth_string }}"
 traefik_ssl_enable: "{{ default_ssl_enable }}"
 traefik_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Tick Stack monitoring config
 monitoring_enabled: true
-monitoring_sitename: "monitoring.example.com"
+monitoring_sitename: "monitoring.{{ default_tld }}"
 monitoring_dashboard_auth_string: "{{ default_auth_string }}"
 monitoring_influx_admin_user: "influx"
 monitoring_influx_admin_password: "{{ default_password }}"
@@ -50,7 +51,7 @@ monitoring_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Main Nextcloud instance config (Transmission and Plex will work only with this instance)
 nextcloud_enabled: false
-nextcloud_sitename: "storage.example.com"
+nextcloud_sitename: "storage.{{ default_tld }}"
 nextcloud_admin_login: "admin"
 nextcloud_admin_password: "{{ default_password }}"
 nextcloud_db_name: "nextcloud"
@@ -64,7 +65,7 @@ nextcloud_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Plex Mediaserver config
 plex_enabled: false
-plex_sitename: "plex.example.com"
+plex_sitename: "plex.{{ default_tld }}"
 plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
 plex_storage_dir: "{{ storage_dir }}/public"
 plex_ssl_enable: "{{ default_ssl_enable }}"
@@ -72,7 +73,7 @@ plex_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Transmission bit-torrent client config
 transmission_enabled: false
-transmission_sitename: "loader.example.com"
+transmission_sitename: "loader.{{ default_tld }}"
 transmission_dashboard_auth_string: "{{ default_auth_string }}"
 transmission_torrent_port: 54321
 transmission_download_dir: "{{ storage_dir }}/public/downloads"
@@ -110,7 +111,7 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #
 # Cloud storage (Nextcloud based) config
 # cloudstorages:
-#  - sitename: "storage.example.com"
+#  - sitename: "storage2.{{ default_tld }}"
 #    ssl_enable: "{{ default_ssl_enable }}"
 #    ssl_redirect:  "{{ default_ssl_redirect }}"
 #    add_www_host: "{{ default_add_www_host }}"
