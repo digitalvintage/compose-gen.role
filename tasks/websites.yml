@@ -1,5 +1,6 @@
 ---
 # Web sites configuration
+
 - name: Create Web sites directory tree
   file:
     path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
@@ -7,7 +8,7 @@
     mode: "0755"
   with_nested:
     - "{{ websites | flatten(levels=1) }}"
-    - ["wwwroot", "db", "config", "config/nginx", "log"]
+    - ["wwwroot", "db", "config", "config/nginx", "config/php", "log"]
 
 - name: Create user 'mysql' for MySQL/Percona
   user:
@@ -56,7 +57,7 @@
 
 - name: Generate nginx configuration files for php-fpm
   template:
-    src: "www/vhost-fpm.conf.j2"
+    src: "www/{{ item.optimization | default ('generic') }}/vhost-fpm.conf.j2"
     dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
     force: yes
     backup: yes
@@ -65,8 +66,20 @@
     - >-
       item.backend_type is undefined
       or (item.backend_type is defined and item.backend_type == "fpm")
-  register: handle_restart_website_fpm
-  notify: restart_website
+  register: handle_restart_frontend_fpm
+  notify: restart_frontend
+
+- name: Generate nginx configuration files for apache
+  template:
+    src: "www/{{ item.optimization | default ('generic') }}/vhost-apache.conf.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    force: yes
+    backup: yes
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - item.backend_type is defined and item.backend_type == "apache"
+  register: handle_restart_frontend_apache
+  notify: restart_frontend
 
 - name: Remove unnecessary configuration for php-fpm
   file:
@@ -75,18 +88,6 @@
   loop: "{{ websites | flatten(levels=1) }}"
   when:
     - item.backend_type is defined and item.backend_type == "apache"
-
-- name: Generate nginx configuration files for apache
-  template:
-    src: "www/vhost-apache.conf.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
-    force: yes
-    backup: yes
-  loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - item.backend_type is defined and item.backend_type == "apache"
-  register: handle_restart_website_apache
-  notify: restart_website
 
 - name: Remove unnecessary configuration for apache
   file:
@@ -97,3 +98,17 @@
     - >-
       item.backend_type is undefined
       or (item.backend_type is defined and item.backend_type == "fpm")
+
+- name: Generate php configuration file
+  template:
+    src: "www/{{ item.optimization | default ('generic') }}/php.ini.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/php/php.ini"
+    force: yes
+    backup: yes
+  loop: "{{ websites | flatten(levels=1) }}"
+  when:
+    - >-
+      item.backend_type is undefined
+      or (item.backend_type is defined and item.backend_type != "custom")
+  register: handle_restart_backend_php
+  notify: restart_backend
