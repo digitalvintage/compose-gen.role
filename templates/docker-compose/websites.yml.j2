@@ -141,6 +141,7 @@
     expose:
       - 80
     volumes:
+      - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% else %}
@@ -153,6 +154,7 @@
     expose:
       - 9000
     volumes:
+      - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% endif %}

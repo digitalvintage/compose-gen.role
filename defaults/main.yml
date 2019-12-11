@@ -88,13 +88,14 @@ transmission_ssl_redirect: true
 #    extended_security_headers: false
 #    http_auth_enable: false
 #    http_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
-#    backend_type: "fpm"      # Could be "fpm", "apache"
-#    backend_version: "7.3"   # php version (only for php-based backends)
-#    db_type: "percona"       # Could be "percona", "mysql", "postgresql"
+#    backend_type: "fpm" | "apache"
+#    backend_php_version: "7.3"
+#    db_type: "percona" | "mysql" | "postgresql"
 #    db_name: "{{ sitename-hyphened }}"
 #    db_user: "{{ sitename-hyphened }}"
 #    db_password: "{{ default_password }}"
 #    db_root_password: "{{ default_password }}"
+#    optimization: "generic" | "generic-dev" | you can add your optimizations see README
 #
 # Cloud storage (Nextcloud based) config
 # cloudstorages:
