@@ -14,7 +14,7 @@
 
 - name: Generate Dockerfiles for php-fpm backends
   template:
-    src: "www/{{ item.optimization | default (default_optimization) }}/dockerfile-fpm.j2"
+    src: "www/dockerfile-fpm.j2"
     dest: "{{compose_dir}}/images/php-fpm-{{ item.backend_php_version | default (default_php_version) }}/Dockerfile"
     force: yes
     backup: yes
@@ -32,7 +32,7 @@
 
 - name: Generate Dockerfiles for php/apache backends
   template:
-    src: "www/{{ item.optimization | default (default_optimization) }}/dockerfile-apache.j2"
+    src: "www/dockerfile-apache.j2"
     dest: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-apache/Dockerfile"
     force: yes
     backup: yes
