@@ -9,7 +9,8 @@
   {% set http_auth_enable = item.http_auth_enable | default (false) %}
   {% set http_auth_string = item.http_auth_string | default (default_auth_string) %}
   {% set backend_type = item.backend_type | default (default_backend_type) %}
-  {% set backend_php_version = item.backend_php_version | default (default_php_version) %}
+  {% set php_version = item.php_version | default (default_php_version) %}
+  {% set optimization = item.optimization | default (default_optimization) %}
   {% set db_type = item.db_type | default (default_db_type) %}
   {% set db_name = item.db_name | default (item.sitename) | replace('.','-') %}
   {% set db_user = item.db_user | default (item.sitename) | replace('.','-') %}
@@ -78,26 +79,30 @@
 {% if backend_type == 'apache' %}
   {{ sitename }}-apache:
     container_name: {{ sitename }}-apache
-    build: ./images/php-{{backend_php_version}}-apache
+    build: ./images/php-{{ php_version }}-apache-{{ optimization }}
     restart: always
     networks:
       - {{ docker_network }}
     expose:
       - 80
     volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% else %}
   {{ sitename }}-fpm:
     container_name: {{ sitename }}-fpm
-    build: ./images/php-fpm-{{backend_php_version}}
+    build: ./images/php-fpm-{{ php_version }}-{{ optimization }}
     restart: always
     networks:
       - {{ docker_network }}
     expose:
       - 9000
     volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log

@@ -10,16 +10,16 @@
     state: directory
     mode: "0755"
   loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type  | default ('fpm') == "fpm"
+  when: item.backend_type | default (default_backend_type) == "fpm"
 
 - name: Generate Dockerfiles for php-fpm backends
   template:
-    src: "www/dockerfile-fpm.j2"
+    src: "www/{{ item.optimization | default (default_optimization) }}/dockerfile-fpm.j2"
     dest: "{{compose_dir}}/images/php-fpm-{{ item.backend_php_version | default (default_php_version) }}/Dockerfile"
     force: yes
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type  | default ('fpm') == "fpm"
+  when: item.backend_type | default (default_backend_type) == "fpm"
   notify: compose_build_images
 
 - name: Create contexts for php/apache backends
@@ -28,14 +28,14 @@
     state: directory
     mode: "0755"
   loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type  | default ('fpm') == "apache"
+  when: item.backend_type | default (default_backend_type) == "apache"
 
 - name: Generate Dockerfiles for php/apache backends
   template:
-    src: "www/dockerfile-apache.j2"
+    src: "www/{{ item.optimization | default (default_optimization) }}/dockerfile-apache.j2"
     dest: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-apache/Dockerfile"
     force: yes
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type  | default ('fpm') == "apache"
+  when: item.backend_type | default (default_backend_type) == "apache"
   notify: compose_build_images

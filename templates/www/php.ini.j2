@@ -454,7 +454,11 @@ memory_limit = 128M
 ; Development Value: E_ALL
 ; Production Value: E_ALL & ~E_DEPRECATED & ~E_STRICT
 ; http://php.net/error-reporting
+{% if item.php_error_reporting | default (default_php_error_reporting) %}
+error_reporting = E_ALL
+{% else %}
 error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+{% endif %}
 
 ; This directive controls whether or not and where PHP will output errors,
 ; notices and warnings too. Error output is very useful during development, but
@@ -905,42 +909,38 @@ default_socket_timeout = 60
 ;   extension folders as well as the separate PECL DLL download (PHP 5+).
 ;   Be sure to appropriately set the extension_dir directive.
 ;
-;extension=bz2
-;extension=curl
-;extension=fileinfo
-;extension=gd2
-;extension=gettext
-;extension=gmp
-;extension=intl
-;extension=imap
-;extension=interbase
-;extension=ldap
-;extension=mbstring
-;extension=exif      ; Must be after mbstring as it depends on it
-;extension=mysqli
-;extension=oci8_12c  ; Use with Oracle Database 12c Instant Client
-;extension=odbc
-;extension=openssl
-;extension=pdo_firebird
-;extension=pdo_mysql
-;extension=pdo_oci
-;extension=pdo_odbc
-;extension=pdo_pgsql
-;extension=pdo_sqlite
-;extension=pgsql
-;extension=shmop
+extension=bz2
+extension=curl
+extension=fileinfo
+extension=gd
+extension=gettext
+extension=gmp
+extension=iconv
+extension=intl
+extension=imap
+extension=ldap
+extension=mbstring
+extension=exif      ; Must be after mbstring as it depends on it
+extension=mysqli
+extension=opcache
+extension=openssl
+extension=pdo_mysql
+extension=pdo_pgsql
+extension=pdo_sqlite
+extension=pgsql
+extension=shmop
+extension=zip
 
 ; The MIBS data available in the PHP distribution must be installed.
 ; See http://www.php.net/manual/en/snmp.installation.php
 ;extension=snmp
 
-;extension=soap
-;extension=sockets
-;extension=sodium
-;extension=sqlite3
-;extension=tidy
-;extension=xmlrpc
-;extension=xsl
+extension=soap
+extension=sockets
+extension=sqlite3
+extension=tidy
+extension=xmlrpc
+extension=xsl
 
 ;;;;;;;;;;;;;;;;;;;
 ; Module Settings ;
@@ -1704,7 +1704,7 @@ zend.assertions = -1
 ; 2: Overload str*() functions
 ; 4: Overload ereg*() functions
 ; http://php.net/mbstring.func-overload
-;mbstring.func_overload = 0
+mbstring.func_overload = {{ item.php_mbstring_overload | default (default_php_mbstring_overload) }}
 
 ; enable strict encoding detection.
 ; Default: Off
@@ -1916,6 +1916,12 @@ ldap.max_links = -1
 ; If specified, it produces opcode dumps for debugging different stages of
 ; optimizations.
 ;opcache.opt_debug_level=0
+
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=4000
+opcache.revalidate_freq=2
+opcache.fast_shutdown=1
 
 [curl]
 ; A default value for the CURLOPT_CAINFO option. This is required to be an

@@ -16,6 +16,7 @@ server {
     location = /50x.html {
         root   /usr/share/nginx/html;
     }
+
     location ~ /\.ht {
         access_log off;
         log_not_found off;
@@ -46,4 +47,3 @@ server {
     }
 
 }
-

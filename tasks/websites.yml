@@ -22,7 +22,6 @@
     - item.db_type | default (default_db_type) == "percona"
     - item.db_type | default (default_db_type) == "mysql"
 
-
 - name: Create database directories for MySQL/Percona
   file:
     path: "{{ sites_dir }}/{{ item.sitename }}/db/mysql"
@@ -34,7 +33,6 @@
   when:
     - item.db_type | default (default_db_type) == "percona"
     - item.db_type | default (default_db_type) == "mysql"
-
 
 - name: Create database directories for PostgreSQL
   file:
@@ -55,7 +53,7 @@
 
 - name: Generate nginx configuration files for php-fpm
   template:
-    src: "www/{{ item.optimization | default ('generic') }}/vhost-fpm.conf.j2"
+    src: "www/vhost-fpm.conf.j2"
     dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
     force: yes
     backup: yes
@@ -66,7 +64,7 @@
 
 - name: Generate nginx configuration files for apache
   template:
-    src: "www/{{ item.optimization | default ('generic') }}/vhost-apache.conf.j2"
+    src: "www/vhost-apache.conf.j2"
     dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
     force: yes
     backup: yes
@@ -89,13 +87,12 @@
   loop: "{{ websites | flatten(levels=1) }}"
   when: item.backend_type | default (default_backend_type) == "fpm"
 
-
 - name: Generate php configuration file
   template:
-    src: "www/{{ item.optimization | default ('generic') }}/php.ini.j2"
+    src: "www/php.ini.j2"
     dest: "{{ sites_dir }}/{{ item.sitename }}/config/php/php.ini"
-    force: yes
-    backup: yes
+    force: "{{ overwrite_php_ini }}"
+    backup: "{{ overwrite_php_ini }}"
   loop: "{{ websites | flatten(levels=1) }}"
   register: handle_restart_backend_php
   notify: restart_backend
