@@ -27,6 +27,7 @@ default_add_www_host: true
 default_www_redirect: true
 default_php_error_reporting: false
 default_php_mbstring_overload: "0"
+default_bitrix_composite_mode: false
 
 #  Dependent common variables
 cloudstorage_dir: "{{ sites_dir }}"
@@ -113,6 +114,25 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    db_password: "{{ default_password }}"
 #    db_root_password: "{{ default_password }}"
 #
+# Bitrix instance config (only Apache supported, based on Bitrix Env)
+# bitrixsites:
+#  - sitename: "bitrix.{{ default_tld }}"
+#    ssl_enable: "{{ default_ssl_enable }}"
+#    ssl_redirect:  "{{ default_ssl_redirect }}"
+#    add_www_host: "{{ default_add_www_host }}"
+#    www_redirect: "{{ default_www_redirect }}"
+#    extended_security_headers: false
+#    http_auth_enable: false
+#    http_auth_string: "{{ default_auth_string }}"
+#    php_version: "{{ default_php_version }}"
+#    php_error_reporting: "{{ default_php_error_reporting }}"
+#    db_name: "bitrix"
+#    db_user: "bitrix"
+#    db_password: "{{ default_password }}"
+#    db_root_password: "{{ default_password }}"
+#    composite_mode: false
+#    memcached_enable: false
+#
 # Cloud storage (Nextcloud based) config
 # cloudstorages:
 #  - sitename: "storage2.{{ default_tld }}"
@@ -125,19 +145,3 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    db_name: "nextcloud"
 #    db_user: "nextcloud"
 #    db_password: "{{ default_password }}"
-#
-# Bitrix instance config (only Apache supported, based on Bitrix Env)
-# bitrices:
-#  - sitename: "bitrix.{{ default_tld }}"
-#    ssl_enable: "{{ default_ssl_enable }}"
-#    ssl_redirect:  "{{ default_ssl_redirect }}"
-#    add_www_host: "{{ default_add_www_host }}"
-#    www_redirect: "{{ default_www_redirect }}"
-#    php_version: "{{ default_php_version }}"
-#    php_error_reporting: "{{ default_php_error_reporting }}"
-#    db_type: "{{ default_db_type }}" | "percona" | "mysql" | "postgresql"
-#    db_name: "bitrix"
-#    db_user: "bitrix"
-#    db_password: "{{ default_password }}"
-#    db_root_password: "{{ default_password }}"
-#    memcached_enable: true

@@ -13,12 +13,12 @@
   {% set middleware_list = 'security-headers-a@file' %}
   {% set middleware_insecure_list = 'security-headers-a@file' %}
   {% if ssl_redirect and ssl_enable %}
-    {% set middleware_insecure_list = middleware_list+', https-redirect@file' %}
+    {% set middleware_insecure_list = middleware_insecure_list+', https-redirect@file' %}
   {% endif %}
   {% if www_redirect and add_www_host %}
     {% set middleware_list = middleware_list+', www-redirect@file' %}
     {% if not ssl_redirect %}
-      {% set middleware_insecure_list = middleware_list+', www-redirect-insecure@file' %}
+      {% set middleware_insecure_list = middleware_insecure_list+', www-redirect-insecure@file' %}
     {% endif %}
   {% endif %}
 

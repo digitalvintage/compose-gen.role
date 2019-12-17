@@ -44,6 +44,13 @@
 - include: websites.yml
   when: websites is defined
 
+# Bitrix-based web sites configuration
+- include: bitrix.yml
+  when: bitrixsites is defined
+
+- include: bitrix-dockerimages.yml
+  when: bitrixsites is defined
+
 # Cloud storage instances configuration
 - include: cloudstorages.yml
   when: cloudstorages is defined

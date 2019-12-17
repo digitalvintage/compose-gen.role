@@ -56,6 +56,11 @@
   loop: "{{ handle_restart_frontend_apache.results | selectattr('changed', 'equalto', true) | list }}"
   listen: "restart_frontend"
 
+- name: Restart Website Frontend (Bitrix-based)
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-bitrix-nginx"
+  loop: "{{ handle_restart_bitrix_frontend.results | selectattr('changed', 'equalto', true) | list }}"
+  listen: "restart_bitrix_frontend"
+
 - name: Restart Website Backend (php-fpm)
   command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-fpm"
   loop: "{{ handle_restart_backend_php.results | selectattr('changed', 'equalto', true) | list }}"

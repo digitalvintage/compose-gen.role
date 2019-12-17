@@ -62,6 +62,13 @@
   register: handle_restart_frontend_fpm
   notify: restart_frontend
 
+- name: Remove unnecessary configuration for apache
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    state: absent
+  loop: "{{ websites | flatten(levels=1) }}"
+  when: item.backend_type | default (default_backend_type) == "fpm"
+
 - name: Generate nginx configuration files for apache
   template:
     src: "www/vhost-apache.conf.j2"
@@ -79,13 +86,6 @@
     state: absent
   loop: "{{ websites | flatten(levels=1) }}"
   when: item.backend_type | default (default_backend_type) == "apache"
-
-- name: Remove unnecessary configuration for apache
-  file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
-    state: absent
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "fpm"
 
 - name: Generate php configuration file
   template:

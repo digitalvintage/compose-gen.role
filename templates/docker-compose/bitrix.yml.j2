@@ -1,0 +1,112 @@
+{% for item in bitrixsites %}
+  {% set sitename = item.sitename %}
+  {% set sitename_hyphened = item.sitename | replace('.','-') %}
+  {% set ssl_enable = item.ssl_enable | default (default_ssl_enable) %}
+  {% set ssl_redirect = item.ssl_redirect | default (default_ssl_redirect) %}
+  {% set add_www_host = item.add_www_host | default (default_add_www_host) %}
+  {% set www_redirect = item.www_redirect | default (default_www_redirect) %}
+  {% set extended_security_headers = item.extended_security_headers | default (false) %}
+  {% set http_auth_enable = item.http_auth_enable | default (false) %}
+  {% set http_auth_string = item.http_auth_string | default (default_auth_string) %}
+  {% set php_version = item.php_version | default (default_php_version) %}
+  {% set db_name = item.db_name | default ("bitrix") %}
+  {% set db_user = item.db_user | default ("bitrix") %}
+  {% set db_password = item.db_password | default (default_password) %}
+  {% set db_root_password = item.db_root_password | default (default_db_root_password) %}
+  {% set composite_mode = item.composite_mode | default (false) %}
+  {% set memcached_enable = item.memcached_enable | default (false) %}
+  {% if extended_security_headers %}
+    {% set middleware_list = 'security-headers-a-plus@file' %}
+    {% set middleware_insecure_list = 'security-headers-a-plus@file' %}
+  {% else %}
+    {% set middleware_list = 'security-headers-a@file' %}
+    {% set middleware_insecure_list = 'security-headers-a@file' %}
+  {% endif %}
+  {% if ssl_redirect and ssl_enable %}
+    {% set middleware_insecure_list = middleware_insecure_list+', https-redirect@file' %}
+  {% endif %}
+  {% if www_redirect and add_www_host %}
+    {% set middleware_list = middleware_list+', www-redirect@file' %}
+    {% if not ssl_redirect %}
+      {% set middleware_insecure_list = middleware_insecure_list+', www-redirect-insecure@file' %}
+    {% endif %}
+  {% endif %}
+  {% if http_auth_enable  and http_auth_string is defined %}
+    {% set middleware_list = middleware_list+', '+sitename_hyphened+'-bitrix-auth' %}
+    {% if not ssl_redirect %}
+      {% set middleware_insecure_list = middleware_insecure_list+', '+sitename_hyphened+'-bitrix-auth' %}
+    {% endif %}
+  {% endif %}
+
+# {{ sitename }}
+  {{ sitename }}-bitrix-nginx:
+    container_name: {{ sitename }}-bitrix-nginx
+    image: nginx
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 80
+    labels:
+      - "traefik.enable=true"
+{% if ssl_enable %}
+{% if add_www_host %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
+{% else %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.rule=Host(`{{ sitename }}`)"
+{% endif %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.entrypoints=https"
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.tls.certresolver=default"
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.tls=true"
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix.middlewares={{ middleware_list }}"
+{% endif %}
+{% if add_www_host %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix-insecure.rule=Host(`{{ sitename }}`,`www.{{ sitename }}`)"
+{% else %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix-insecure.rule=Host(`{{ sitename }}`)"
+{% endif %}
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix-insecure.entrypoints=http"
+      - "traefik.http.routers.{{ sitename_hyphened }}-bitrix-insecure.middlewares={{ middleware_insecure_list }}"
+{% if http_auth_enable and http_auth_string is defined %}
+      - "traefik.http.middlewares.{{ sitename_hyphened }}-bitrix-auth.basicauth.users={{ http_auth_string }}"
+{% endif %}
+    volumes:
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/nginx:/etc/nginx:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}-bitrix/log:/var/www/log
+
+  {{ sitename }}-bitrix:
+    container_name: {{ sitename }}-bitrix
+    build: ./images/php-{{ php_version }}-bitrix
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 80
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/php/php.ini:/usr/local/etc/php/php.ini
+      - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/html
+      - {{ sites_dir }}/{{ sitename }}-bitrix/log:/var/www/log
+
+  {{ sitename }}-bitrix-db:
+    container_name: '{{ sitename }}-db'
+    image: percona
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 3306
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/db/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD={{ db_root_password }}
+      - MYSQL_PASSWORD={{ db_password }}
+      - MYSQL_DATABASE={{ db_name }}
+      - MYSQL_USER={{ db_user }}
+
+{% endfor %}
