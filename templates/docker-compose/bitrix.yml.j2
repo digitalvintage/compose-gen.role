@@ -71,6 +71,7 @@
       - "traefik.http.middlewares.{{ sitename_hyphened }}-bitrix-auth.basicauth.users={{ http_auth_string }}"
 {% endif %}
     volumes:
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/hosts:/etc/hosts:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/config/nginx:/etc/nginx:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}-bitrix/log:/var/www/log
@@ -86,6 +87,8 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/hosts:/etc/hosts:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/msmtprc:/etc/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/config/httpd:/etc/apache2:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/config/php:/usr/local/etc/php:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/html

@@ -12,7 +12,7 @@ acme_email: "admin@example.com"
 overwrite_php_ini: yes
 default_tld: "example.com"
 default_password: "password"
-default_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
+default_auth_string: "user:$$apr1$$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
 # Set to 'false' if you want run 'docker-compose up -d' by yourself
 update_compose: true
@@ -28,6 +28,15 @@ default_www_redirect: true
 default_php_error_reporting: false
 default_php_mbstring_overload: "0"
 default_bitrix_composite_mode: false
+
+# msmtp common settings
+default_msmtp_host: "smtp.{{ default_tld }}"
+default_msmtp_port: 465
+default_msmtp_email: "noreply@{{ default_tld }}"
+default_msmtp_login: "noreply@{{ default_tld }}"
+default_msmtp_password: "{{ default_password }}"
+default_msmtp_tls: true
+default_msmtp_starttls: false
 
 #  Dependent common variables
 cloudstorage_dir: "{{ sites_dir }}"

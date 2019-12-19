@@ -56,6 +56,14 @@
     - "{{ bitrixsites | flatten(levels=1) }}"
   when: item[0].state == 'file'
 
+- name: Generate /etc/hosts
+  template:
+    src: "etc-hosts.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/hosts"
+    force: yes
+    backup: no
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+
 - name: Generate nginx configuration files for Bitrix
   template:
     src: "bitrix/vhost-bitrix.conf.j2"

@@ -6,7 +6,7 @@
 
 - name: Create contexts for nginx with push_stream module
   file:
-    path: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-bitrix"
+    path: "{{compose_dir}}/images/nginx-push-stream"
     state: directory
     mode: "0755"
   loop: "{{ bitrixsites | flatten(levels=1) }}"
@@ -18,7 +18,7 @@
     force: yes
     backup: yes
   loop: "{{ bitrixsites | flatten(levels=1) }}"
-  notify: compose_build_images
+  notify: compose_update
 
 
 - name: Create contexts for php/apache backends
@@ -35,4 +35,4 @@
     force: yes
     backup: yes
   loop: "{{ bitrixsites | flatten(levels=1) }}"
-  notify: compose_build_images
+  notify: compose_update

@@ -71,6 +71,7 @@
       - "traefik.http.middlewares.{{ sitename_hyphened }}-auth.basicauth.users={{ http_auth_string }}"
 {% endif %}
     volumes:
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
       - {{ sites_dir }}/{{ sitename }}/config/nginx:/etc/nginx/conf.d:ro
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
@@ -87,6 +88,8 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
+      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/etc/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
@@ -102,6 +105,8 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
+      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/etc/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
