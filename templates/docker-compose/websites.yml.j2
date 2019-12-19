@@ -72,7 +72,7 @@
 {% endif %}
     volumes:
       - {{ sites_dir }}/{{ sitename }}/config/nginx:/etc/nginx/conf.d:ro
-      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 
 {% if backend_type == 'apache' %}
@@ -103,7 +103,7 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
-      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% endif %}
 

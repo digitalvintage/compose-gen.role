@@ -6,6 +6,8 @@
     path: "{{ sites_dir }}/{{ item[0].sitename }}-bitrix/{{ item[1] }}"
     state: directory
     mode: "0755"
+    owner: www-data
+    group: www-data
   with_nested:
     - "{{ bitrixsites | flatten(levels=1) }}"
     - ["wwwroot", "db", "config", "config/nginx", "log"]
@@ -36,21 +38,21 @@
   notify: init_bitrix
   changed_when: bitrix_to_init.matched == 0
 
-- name: Check/Create nginx config directory structure
+- name: Check/Create config directory structure
   file:
-    path: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/nginx/{{ item[0].path }}"
+    path: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
     state: directory
   with_nested:
-    - "{{ query('filetree', '../templates/bitrix/etc/nginx') }}"
+    - "{{ query('filetree', '../templates/bitrix/etc') }}"
     - "{{ bitrixsites | flatten(levels=1) }}"
   when: item[0].state == 'directory'
 
-- name: Generate common nginx config for Bitrix
+- name: Generate common config for Bitrix
   template:
     src: "{{ item[0].src }}"
-    dest: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/nginx/{{ item[0].path }}"
+    dest: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
   with_nested:
-    - "{{ query('filetree', '../templates/bitrix/etc/nginx') }}"
+    - "{{ query('filetree', '../templates/bitrix/etc') }}"
     - "{{ bitrixsites | flatten(levels=1) }}"
   when: item[0].state == 'file'
 
@@ -61,8 +63,8 @@
     force: yes
     backup: yes
   loop: "{{ bitrixsites | flatten(levels=1) }}"
-  register: handle_restart_bitrix_frontend
-  notify: restart_bitrix_frontend
+  register: handle_restart_bitrix
+  notify: restart_bitrix
   when: item.composite_mode | default (default_bitrix_composite_mode) == false
 
 - name: Remove unnecessary configuration for Bitrix in Composite mode
@@ -79,8 +81,8 @@
     force: yes
     backup: yes
   loop: "{{ bitrixsites | flatten(levels=1) }}"
-  register: handle_restart_bitrix_frontend
-  notify: restart_bitrix_frontend
+  register: handle_restart_bitrix_2
+  notify: restart_bitrix
   when: item.composite_mode | default (default_bitrix_composite_mode) == true
 
 - name: Remove unnecessary configuration for Bitrix

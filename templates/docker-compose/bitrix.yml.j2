@@ -39,9 +39,9 @@
   {% endif %}
 
 # {{ sitename }}
-  {{ sitename }}-bitrix-nginx:
-    container_name: {{ sitename }}-bitrix-nginx
-    image: nginx
+  {{ sitename }}-nginx:
+    container_name: {{ sitename }}-nginx
+    build: ./images/nginx-push-stream
     restart: always
     networks:
       - {{ docker_network }}
@@ -72,7 +72,7 @@
 {% endif %}
     volumes:
       - {{ sites_dir }}/{{ sitename }}-bitrix/config/nginx:/etc/nginx:ro
-      - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}-bitrix/log:/var/www/log
 
   {{ sitename }}-bitrix:
@@ -86,11 +86,12 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
-      - {{ sites_dir }}/{{ sitename }}-bitrix/config/php/php.ini:/usr/local/etc/php/php.ini
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/httpd:/etc/apache2:ro
+      - {{ sites_dir }}/{{ sitename }}-bitrix/config/php:/usr/local/etc/php:ro
       - {{ sites_dir }}/{{ sitename }}-bitrix/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}-bitrix/log:/var/www/log
 
-  {{ sitename }}-bitrix-db:
+  {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
     image: percona
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
@@ -108,5 +109,14 @@
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
+
+  {{ sitename }}-redis:
+    container_name: '{{ sitename }}-redis'
+    image: redis
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 6379
 
 {% endfor %}

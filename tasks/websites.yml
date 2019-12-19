@@ -6,6 +6,8 @@
     path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
     state: directory
     mode: "0755"
+    owner: www-data
+    group: www-data
   with_nested:
     - "{{ websites | flatten(levels=1) }}"
     - ["wwwroot", "db", "config", "config/nginx", "config/php", "log"]

@@ -1,24 +1,7 @@
-# Ansible managed
-# site: spb.estima.ru
-<VirtualHost 127.0.0.1:9887>
-    ServerName  spb.estima.ru
-	ServerAlias www.spb.estima.ru
-    	ServerAdmin webmaster@localhost
-	DocumentRoot  /home/bitrix/ext_www/spb.estima.ru
-
-	ErrorLog logs/spb_error_log
-	LogLevel warn
-	CustomLog logs/spb_access_log combined
-
-	<IfModule mod_rewrite.c>
-		#Nginx should have "proxy_set_header HTTPS YES;" in location
-		RewriteEngine On
-		RewriteCond %{HTTP:HTTPS} =YES
-		RewriteRule .* - [E=HTTPS:on,L]
-	</IfModule>
-
-     
-     
+Listen *:80
+<VirtualHost 127.0.0.1:80>
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/html
 
 	<Directory />
 		Options FollowSymLinks
@@ -26,7 +9,7 @@
 	</Directory>
 
 	<DirectoryMatch .*\.svn/.*>
-        Require all denied
+		 Require all denied
 	</DirectoryMatch>
 
 	<DirectoryMatch .*\.git/.*>
@@ -37,58 +20,68 @@
 		 Require all denied
 	</DirectoryMatch>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru>
+	<Directory /var/www/html/>
 		Options Indexes FollowSymLinks MultiViews
 		AllowOverride All
 		DirectoryIndex index.php index.html index.htm
-
+		php_admin_value session.save_path /tmp/php_sessions/www
+		php_admin_value upload_tmp_dir /tmp/php_upload/www
         Require all granted
-        
-        php_admin_value session.save_path /tmp/php_sessions/ext_www/spb.estima.ru
-        php_admin_value upload_tmp_dir    /tmp/php_upload/ext_www/spb.estima.ru
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/cache>
+	<Directory /var/www/html/bitrix/cache>
 		AllowOverride none
         Require all denied
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/managed_cache>
+	<Directory /var/www/html/bitrix/managed_cache>
 		AllowOverride none
         Require all denied
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/local_cache>
+	<Directory /var/www/html/bitrix/local_cache>
 		AllowOverride none
         Require all denied
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/stack_cache>
+	<Directory /var/www/html/bitrix/stack_cache>
 		AllowOverride none
         Require all denied
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/upload>
+	<Directory /var/www/html/upload>
 		AllowOverride none
 		AddType text/plain php,php3,php4,php5,php6,phtml,pl,asp,aspx,cgi,dll,exe,ico,shtm,shtml,fcg,fcgi,fpl,asmx,pht
 		php_value engine off
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/upload/support/not_image>
+	<Directory /var/www/html/upload/support/not_image>
 		AllowOverride none
         Require all denied
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/images>
+	<Directory /var/www/html/bitrix/images>
 		AllowOverride none
 		AddType text/plain php,php3,php4,php5,php6,phtml,pl,asp,aspx,cgi,dll,exe,ico,shtm,shtml,fcg,fcgi,fpl,asmx,pht
 		php_value engine off
 	</Directory>
 
-	<Directory /home/bitrix/ext_www/spb.estima.ru/bitrix/tmp>
+	<Directory /var/www/html/bitrix/tmp>
 		AllowOverride none
 		AddType text/plain php,php3,php4,php5,php6,phtml,pl,asp,aspx,cgi,dll,exe,ico,shtm,shtml,fcg,fcgi,fpl,asmx,pht
 		php_value engine off
 	</Directory>
 
+	ErrorLog logs/error_log
+	# Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+	LogLevel warn
+
+	CustomLog logs/access_log combined
+
+	<IfModule mod_rewrite.c>
+		#Nginx should have "proxy_set_header HTTPS YES;" in location
+		RewriteEngine On
+		RewriteCond %{HTTP:HTTPS} =YES
+		RewriteRule .* - [E=HTTPS:on,L]
+	</IfModule>
 </VirtualHost>

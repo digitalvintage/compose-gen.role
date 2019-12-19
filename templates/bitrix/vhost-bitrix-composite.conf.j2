@@ -1,7 +1,7 @@
 # Ansible managed
 ###############################################################
 # configuration for http-site:
-# site_root:                 /var/www/wwwroot
+# site_root:                 /var/www/html
 # site_composite:            enable
 # site_composite_id:         01
 # site_composite_var:        $is_site_composite_01
@@ -14,14 +14,14 @@ server {
   access_log /var/www/log/nginx-access.log main;
   error_log  /var/www/log/nginx-error.log warn;
 
-  set $docroot		"/var/www/wwwroot";
-  root            "/var/www/wwwroot";
+  set $docroot		"/var/www/html";
+  root            "/var/www/html";
   proxy_ignore_client_abort off;
   index index.php;
 
   server_name_in_redirect off;
 
-  set $proxyserver	"http://{{ item.sitename }}-bitrix:8887";
+  set $proxyserver	"http://{{ item.sitename }}-bitrix:80";
   proxy_set_header	X-Forwarded-For    $proxy_add_x_forwarded_for;
   proxy_set_header	X-Real-IP          $remote_addr;
   proxy_set_header	Host               $host:80;
@@ -32,7 +32,7 @@ server {
   set $imcontenttype	"text/html; charset=utf-8";
   
   # Redirect to ssl if need
-  if (-f /var/www/wwwroot/.htsecure) { return 301 https://$host$request_uri; }
+  #if (-f /var/www/html/.htsecure) { return 301 https://$host$request_uri; }
     
   # composite variables
   set $composite_cache    "bitrix/html_pages/${host}${composite_key}/index@${args}.html";
