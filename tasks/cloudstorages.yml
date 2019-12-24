@@ -1,13 +1,5 @@
 ---
 # Cloud storages configuration
-- name: Create user 'www-data'
-  user:
-    name: "www-data"
-    comment: "Web Services user"
-    state: "present"
-    shell: "/sbin/nologin"
-    home: "{{ sites_dir }}"
-
 - name: Create Cloud storages directory tree
   file:
     path: "{{ cloudstorage_dir }}/{{ item[0].sitename }}-nextcloud/{{ item[1] }}"

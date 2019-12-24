@@ -1,0 +1,17 @@
+[mysqld]
+    innodb_strict_mode = off
+    query_cache_type = 1
+    query_cache_size = 128M
+    query_cache_limit = 16M
+    innodb_buffer_pool_size = 2048M
+    max_connections = 200
+    table_open_cache = 14336
+    thread_cache_size = 128
+    max_heap_table_size = 128M
+    tmp_table_size = 128M
+    key_buffer_size = 96M
+    join_buffer_size = 18M
+    sort_buffer_size = 18M
+    bulk_insert_buffer_size = 2M
+    myisam_sort_buffer_size = 18M
+

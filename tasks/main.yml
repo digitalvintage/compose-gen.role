@@ -2,6 +2,14 @@
 # tasks file for compose-gen.role
 
 # Common tasks
+- name: Create user 'www-data'
+  user:
+    name: "www-data"
+    comment: "Web Services user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
+
 - name: Create working directories
   file:
     path: "{{ item }}"

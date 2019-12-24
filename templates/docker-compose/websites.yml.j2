@@ -89,8 +89,8 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
-      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/etc/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
+      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/var/www/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% else %}
@@ -126,11 +126,13 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
+      - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:
       - MYSQL_ROOT_PASSWORD={{ db_root_password }}
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
+      - TZ={{ timezone }}
 {% elif db_type == 'postgresql' %}
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
@@ -146,6 +148,7 @@
       - POSTGRES_DB={{ db_name }}
       - POSTGRES_USER={{ db_user }}
       - POSTGRES_PASSWORD={{ db_password }}
+      - TZ={{ timezone }}
 {% else %}
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
@@ -160,11 +163,13 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
+      - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:
       - MYSQL_ROOT_PASSWORD={{ db_root_password }}
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
+      - TZ={{ timezone }}
 {% endif %}
 
 {% endfor %}

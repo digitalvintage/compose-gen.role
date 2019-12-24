@@ -19,16 +19,17 @@
     state: "present"
     shell: "/sbin/nologin"
     home: "{{ sites_dir }}"
-  loop: "{{ bitrixsites | flatten(levels=1) }}"
 
-- name: Create database directories for Percona
+- name: Create database and log directories for Percona
   file:
-    path: "{{ sites_dir }}/{{ item.sitename }}-bitrix/db/mysql"
+    path: "{{ sites_dir }}/{{ item[0].sitename }}-bitrix/{{ item[1] }}"
     state: directory
     mode: "0755"
     owner: polkitd
     group: mysql
-  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  with_nested:
+    - "{{ bitrixsites | flatten(levels=1) }}"
+    - ["db/mysql", "log/mysql"]
 
 - name: Check if instance needs to be initialized
   find:
@@ -43,7 +44,7 @@
     path: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
     state: directory
   with_nested:
-    - "{{ query('filetree', '../templates/bitrix/etc') }}"
+    - "{{ query('filetree', '../templates/bitrix/config') }}"
     - "{{ bitrixsites | flatten(levels=1) }}"
   when: item[0].state == 'directory'
 
@@ -52,13 +53,15 @@
     src: "{{ item[0].src }}"
     dest: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
   with_nested:
-    - "{{ query('filetree', '../templates/bitrix/etc') }}"
+    - "{{ query('filetree', '../templates/bitrix/config') }}"
     - "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix_php
+  notify: restart_bitrix
   when: item[0].state == 'file'
 
 - name: Generate /etc/hosts
   template:
-    src: "etc-hosts.j2"
+    src: "common/etc-hosts.j2"
     dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/hosts"
     force: yes
     backup: no
@@ -89,7 +92,7 @@
     force: yes
     backup: yes
   loop: "{{ bitrixsites | flatten(levels=1) }}"
-  register: handle_restart_bitrix_2
+  register: handle_restart_bitrix_composite
   notify: restart_bitrix
   when: item.composite_mode | default (default_bitrix_composite_mode) == true
 
@@ -99,3 +102,16 @@
     state: absent
   loop: "{{ bitrixsites | flatten(levels=1) }}"
   when: item.composite_mode | default (default_bitrix_composite_mode) == true
+
+- name: Generate msmtp configuration files
+  template:
+    src: "common/msmtprc.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/msmtprc"
+    force: yes
+    backup: no
+    mode: "0600"
+    owner: www-data
+    group: www-data
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix_msmtp
+  notify: restart_bitrix
