@@ -19,9 +19,8 @@
     state: "present"
     shell: "/sbin/nologin"
     home: "{{ sites_dir }}"
-  when:
-    - item.db_type | default (default_db_type) == "percona"
-    - item.db_type | default (default_db_type) == "mysql"
+  when: item.db_type | default (default_db_type) == "percona" or
+        item.db_type | default (default_db_type) == "mysql"
 
 - name: Create database and log directories for Percona/MySQL
   file:
@@ -33,9 +32,8 @@
   with_nested:
     - "{{ websites | flatten(levels=1) }}"
     - ["db/mysql", "log/mysql"]
-  when:
-    - item.db_type | default (default_db_type) == "percona"
-    - item.db_type | default (default_db_type) == "mysql"
+  when: item[0].db_type | default (default_db_type) == "percona" or
+        item[0].db_type | default (default_db_type) == "mysql"
 
 - name: Create database directories for PostgreSQL
   file:
@@ -43,8 +41,7 @@
     state: directory
     mode: "0755"
   loop: "{{ websites | flatten(levels=1) }}"
-  when:
-    - item.db_type | default (default_db_type) == "postgresql"
+  when: item.db_type | default (default_db_type) == "postgresql"
 
 - name: Check if Web site needs to be initialized
   find:
