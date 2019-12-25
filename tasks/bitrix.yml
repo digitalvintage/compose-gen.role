@@ -55,7 +55,7 @@
   with_nested:
     - "{{ query('filetree', '../templates/bitrix/config') }}"
     - "{{ bitrixsites | flatten(levels=1) }}"
-  register: handle_restart_bitrix_php
+  register: handle_restart_bitrix_config
   notify: restart_bitrix
   when: item[0].state == 'file'
 

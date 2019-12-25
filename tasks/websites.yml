@@ -25,13 +25,13 @@
 
 - name: Create database and log directories for Percona/MySQL
   file:
-    path: "{{ sites_dir }}/{{ item[0].sitename }}-bitrix/{{ item[1] }}"
+    path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
     state: directory
     mode: "0755"
     owner: polkitd
     group: mysql
   with_nested:
-    - "{{ bitrixsites | flatten(levels=1) }}"
+    - "{{ websites | flatten(levels=1) }}"
     - ["db/mysql", "log/mysql"]
   when:
     - item.db_type | default (default_db_type) == "percona"
@@ -60,7 +60,7 @@
     state: directory
   with_nested:
     - "{{ query('filetree', '../templates/www/config') }}"
-    - "{{ bitrixsites | flatten(levels=1) }}"
+    - "{{ websites | flatten(levels=1) }}"
   when: item[0].state == 'directory'
 
 - name: Generate common config files for Web Site
@@ -69,9 +69,9 @@
     dest: "{{ sites_dir }}/{{ item[1].sitename }}/config/{{ item[0].path }}"
   with_nested:
     - "{{ query('filetree', '../templates/www/config') }}"
-    - "{{ bitrixsites | flatten(levels=1) }}"
-  register: handle_restart_bitrix_php
-  notify: restart_bitrix
+    - "{{ websites | flatten(levels=1) }}"
+  register: handle_restart_backend_config
+  notify: restart_backend
   when: item[0].state == 'file'
 
 - name: Generate /etc/hosts
