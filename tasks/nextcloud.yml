@@ -1,13 +1,5 @@
 ---
 # Nextcloud (Main instance) configuration
-- name: Create user 'www-data'
-  user:
-    name: "www-data"
-    comment: "Web Services user"
-    state: "present"
-    shell: "/sbin/nologin"
-    home: "{{ sites_dir }}"
-
 - name: Create Nextcloud directories
   file:
     path: "{{ item }}"

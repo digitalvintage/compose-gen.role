@@ -1,7 +1,7 @@
 ---
 # handlers file for compose-gen.role
 
-- name: Initialize Web site
+- name: Initialize Web sites
   template:
     src: "www/phpinfo.php.j2"
     dest: "{{ item.invocation.module_args.paths[0] }}/index.php"
@@ -9,6 +9,15 @@
     backup: no
   loop: "{{ site_to_init.results }}"
   listen: init_site
+
+- name: Initialize Bitrix-based Web sites
+  template:
+    src: "bitrix/phpinfo.php.j2"
+    dest: "{{ item.invocation.module_args.paths[0] }}/index.php"
+    force: no
+    backup: no
+  loop: "{{ bitrix_to_init.results }}"
+  listen: init_bitrix
 
 - include: docker-compose.yml
   when: update_compose

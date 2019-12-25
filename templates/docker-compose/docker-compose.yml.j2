@@ -46,6 +46,13 @@ services:
 # End of Web Sites
 {% endif %}
 
+{% if bitrixsites is defined %}
+
+# Definition of Bitrix-based Web Sites
+{% include "docker-compose/bitrix.yml.j2" with context %}
+# End of Bitrix-based Web Sites
+{% endif %}
+
 {% if cloudstorages is defined %}
 
 # Definition of Cloud Storage instances

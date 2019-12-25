@@ -1,0 +1,80 @@
+FROM php:{{ item.backend_php_version | default ('7.3')}}-apache
+MAINTAINER Vitaly Prokofiev <vp@digitalvintage.ru>
+
+RUN apt-get update && apt-get install -y \
+        curl \
+        wget \
+        git \
+	msmtp \
+        libcurl4-openssl-dev \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libmcrypt-dev \
+        libpng-dev \
+        libzip-dev \
+        libbz2-dev \
+        libgmp3-dev \
+        libmpfr-dev \
+        libicu-dev \
+        libc-client-dev \
+        libkrb5-dev \
+        libldb-dev \
+        libldap2-dev \
+        libpspell-dev \
+        libpq-dev \
+        libxml2-dev \
+        libtidy-dev \
+        libxslt-dev \
+    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+    && docker-php-ext-install -j$(nproc) \
+        bz2 \
+        calendar \
+        ctype \
+        curl \
+        dom \
+        fileinfo \
+        gettext \
+        gmp \
+        iconv \
+        intl \
+        imap \
+        json \
+        ldap \
+        exif \
+        mbstring \
+        mysqli \
+        opcache \
+        pdo_mysql \
+        pdo_pgsql \
+        pgsql \
+        pspell \
+        shmop \
+        simplexml \
+        zip \
+        soap \
+        sockets \
+        tidy \
+        tokenizer \
+        xmlrpc \
+        xmlwriter \
+        xsl \
+    && pecl install \
+        apcu \
+        igbinary \
+        mcrypt \
+        msgpack \
+        mysqlnd \
+        redis \
+    && docker-php-ext-enable \
+        apcu \
+        igbinary \
+        mcrypt \
+        msgpack \
+        redis \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www/html
+
+CMD ["apache2-foreground"]

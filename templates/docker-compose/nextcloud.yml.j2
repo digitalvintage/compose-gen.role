@@ -19,6 +19,8 @@
     restart: always
     networks:
       - {{ docker_network }}
+    expose:
+      - 6379
 
   nextcloud-app:
     container_name: 'nextcloud-app'

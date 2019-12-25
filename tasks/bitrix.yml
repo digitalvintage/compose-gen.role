@@ -1,0 +1,117 @@
+---
+# Bitrix-based Web sites configuration
+
+- name: Create Bitrix-based Web sites directory tree
+  file:
+    path: "{{ sites_dir }}/{{ item[0].sitename }}-bitrix/{{ item[1] }}"
+    state: directory
+    mode: "0755"
+    owner: www-data
+    group: www-data
+  with_nested:
+    - "{{ bitrixsites | flatten(levels=1) }}"
+    - ["wwwroot", "db", "config", "config/nginx", "log"]
+
+- name: Create user 'mysql' for Percona
+  user:
+    name: "mysql"
+    comment: "MySQL/Percona user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
+
+- name: Create database and log directories for Percona
+  file:
+    path: "{{ sites_dir }}/{{ item[0].sitename }}-bitrix/{{ item[1] }}"
+    state: directory
+    mode: "0755"
+    owner: polkitd
+    group: mysql
+  with_nested:
+    - "{{ bitrixsites | flatten(levels=1) }}"
+    - ["db/mysql", "log/mysql"]
+
+- name: Check if instance needs to be initialized
+  find:
+    paths: "{{ sites_dir }}/{{ item.sitename }}-bitrix/wwwroot"
+  register: bitrix_to_init
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  notify: init_bitrix
+  changed_when: bitrix_to_init.matched == 0
+
+- name: Check/Create config directory structure
+  file:
+    path: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
+    state: directory
+  with_nested:
+    - "{{ query('filetree', '../templates/bitrix/config') }}"
+    - "{{ bitrixsites | flatten(levels=1) }}"
+  when: item[0].state == 'directory'
+
+- name: Generate common config for Bitrix
+  template:
+    src: "{{ item[0].src }}"
+    dest: "{{ sites_dir }}/{{ item[1].sitename }}-bitrix/config/{{ item[0].path }}"
+  with_nested:
+    - "{{ query('filetree', '../templates/bitrix/config') }}"
+    - "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix_config
+  notify: restart_bitrix
+  when: item[0].state == 'file'
+
+- name: Generate /etc/hosts
+  template:
+    src: "common/etc-hosts.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/hosts"
+    force: yes
+    backup: no
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+
+- name: Generate nginx configuration files for Bitrix
+  template:
+    src: "bitrix/vhost-bitrix.conf.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/nginx/bx/site_enabled/vhost-bitrix.conf"
+    force: yes
+    backup: yes
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix
+  notify: restart_bitrix
+  when: item.composite_mode | default (default_bitrix_composite_mode) == false
+
+- name: Remove unnecessary configuration for Bitrix in Composite mode
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/nginx/bx/site_enabled/vhost-bitrix-composite.conf"
+    state: absent
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  when: item.composite_mode | default (default_bitrix_composite_mode) == false
+
+- name: Generate nginx configuration files for Bitrix in Composite mode
+  template:
+    src: "bitrix/vhost-bitrix-composite.conf.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/nginx/bx/site_enabled/vhost-bitrix-composite.conf"
+    force: yes
+    backup: yes
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix_composite
+  notify: restart_bitrix
+  when: item.composite_mode | default (default_bitrix_composite_mode) == true
+
+- name: Remove unnecessary configuration for Bitrix
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/nginx/bx/site_enabled/vhost-bitrix.conf"
+    state: absent
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  when: item.composite_mode | default (default_bitrix_composite_mode) == true
+
+- name: Generate msmtp configuration files
+  template:
+    src: "common/msmtprc.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}-bitrix/config/msmtprc"
+    force: yes
+    backup: no
+    mode: "0600"
+    owner: www-data
+    group: www-data
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  register: handle_restart_bitrix_msmtp
+  notify: restart_bitrix

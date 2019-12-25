@@ -20,7 +20,7 @@
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
   when: item.backend_type | default (default_backend_type) == "fpm"
-  notify: compose_build_images
+  notify: compose_update
 
 - name: Create contexts for php/apache backends
   file:
@@ -38,4 +38,4 @@
     backup: yes
   loop: "{{ websites | flatten(levels=1) }}"
   when: item.backend_type | default (default_backend_type) == "apache"
-  notify: compose_build_images
+  notify: compose_update

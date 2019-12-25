@@ -1,9 +1,5 @@
-- name: Build Docker Images
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml build"
-  listen: "compose_build_images"
-
 - name: Update docker-compose environment
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml up -d --remove-orphans"
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml up -d --remove-orphans --build"
   register: compose_updated
   listen: "compose_update"
 
@@ -46,33 +42,75 @@
   when: compose_updated is undefined
   listen: "restart_nfs"
 
-- name: Restart Website Frontend (php-fpm)
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-nginx"
-  loop: "{{ handle_restart_frontend_fpm.results | selectattr('changed', 'equalto', true) | list }}"
+
+- name: Compile restart list - Website Frontends
+  set_fact:
+    frontend_to_restart={{ (frontend_to_restart | default ([]) + [item[0].item[1].sitename | default (item[0].item.sitename)]) | unique }}
+  loop:
+    - "{{ handle_restart_frontend_apache.results | selectattr('changed', 'equalto', true) | list }}"
+    - "{{ handle_restart_frontend_fpm.results | selectattr('changed', 'equalto', true) | list }}"
+  when: item != []
   listen: "restart_frontend"
 
-- name: Restart Website Frontend (Apache)
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-nginx"
-  loop: "{{ handle_restart_frontend_apache.results | selectattr('changed', 'equalto', true) | list }}"
+- name: Restart Website Frontend
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item }}-nginx"
+  loop: "{{ lookup('items', frontend_to_restart, wantlist=True ) }}"
+  when: frontend_to_restart is defined
   listen: "restart_frontend"
 
-- name: Restart Website Backend (php-fpm)
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-fpm"
-  loop: "{{ handle_restart_backend_php.results | selectattr('changed', 'equalto', true) | list }}"
+
+- name: Compile restart list - Website Backends and Databases
+  set_fact:
+    backend_to_restart={{ (backend_to_restart | default ([]) + [item[0].item[1].sitename | default (item[0].item.sitename)]) | unique }}
+  loop:
+    - "{{ handle_restart_backend_config.results | selectattr('changed', 'equalto', true) | list }}"
+    - "{{ handle_restart_backend_msmtp.results | selectattr('changed', 'equalto', true) | list }}"
+  when: item != []
+  listen: "restart_backend"
+
+- name: Restart Website Backend and Database (Apache)
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item[0] }}-apache {{ item[0] }}-db"
+  with_nested:
+    - "{{ lookup('items', backend_to_restart, wantlist=True ) }}"
+    - "{{ websites }}"
   when:
-    - >-
-      item.backend_type is undefined
-      or (item.backend_type is defined and item.backend_type == "fpm")
+    - backend_to_restart is defined
+    - item[1].sitename == item[0]
+    - item[1].backend_type | default (default_backend_type) == 'apache'
   listen: "restart_backend"
 
-- name: Restart Website Backend (Apache)
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-apache"
-  loop: "{{ handle_restart_backend_php.results | selectattr('changed', 'equalto', true) | list }}"
-  when: item.backend_type is defined and item.backend_type == "apache"
+- name: Restart Website Backend and Database (php-fpm)
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item[0] }}-fpm {{ item[0] }}-db"
+  with_nested:
+    - "{{ lookup('items', backend_to_restart, wantlist=True ) }}"
+    - "{{ websites }}"
+  when:
+    - backend_to_restart is defined
+    - item[1].sitename == item[0]
+    - item[1].backend_type | default (default_backend_type) == 'fpm'
   listen: "restart_backend"
+
+
+- name: Compile restart list - Bitrix
+  set_fact:
+    bitrix_to_restart={{ (bitrix_to_restart | default ([]) + [item[0].item[1].sitename | default (item[0].item.sitename)]) | unique }}
+  loop:
+    - "{{ handle_restart_bitrix.results | default([])  | selectattr('changed', 'equalto', true) | list }}"
+    - "{{ handle_restart_bitrix_composite.results | default([])  | selectattr('changed', 'equalto', true) | list }}"
+    - "{{ handle_restart_bitrix_config.results | default([])  | selectattr('changed', 'equalto', true) | list }}"
+    - "{{ handle_restart_bitrix_msmtp.results | default([])  | selectattr('changed', 'equalto', true) | list }}"
+  when: item != []
+  listen: "restart_bitrix"
+
+- name: Restart Website (Bitrix-based)
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item }}-nginx {{ item }}-bitrix {{ item }}-db {{ item }}-redis"
+  loop: "{{ lookup('items', bitrix_to_restart, wantlist=True ) }}"
+  when: bitrix_to_restart is defined
+  listen: "restart_bitrix"
+
 
 - name: Restart Cloud storage
-  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item.item.sitename }}-nextcloud-db {{ item.item.sitename }}-nextcloud-redis {{ item.item.sitename }}-nextcloud-app {{ item.item.sitename }}-nextcloud-cron {{ item.item.sitename }}-nextcloud-frontend"
+  command: "docker-compose -f {{ compose_dir }}/docker-compose.yml restart {{ item[0].item.sitename }}-nextcloud-db {{ item[0].item.sitename }}-nextcloud-redis {{ item[0].item.sitename }}-nextcloud-app {{ item[0].item.sitename }}-nextcloud-cron {{ item[0].item.sitename }}-nextcloud-frontend"
   loop: "{{ handle_restart_storage.results | selectattr('changed', 'equalto', true) | list }}"
   when: compose_updated is undefined
   listen: "restart_cloudstorage"

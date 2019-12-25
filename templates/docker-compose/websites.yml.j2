@@ -23,18 +23,18 @@
     {% set middleware_insecure_list = 'security-headers-a@file' %}
   {% endif %}
   {% if ssl_redirect and ssl_enable %}
-    {% set middleware_insecure_list = middleware_list+', https-redirect@file' %}
+    {% set middleware_insecure_list = middleware_insecure_list+', https-redirect@file' %}
   {% endif %}
   {% if www_redirect and add_www_host %}
     {% set middleware_list = middleware_list+', www-redirect@file' %}
     {% if not ssl_redirect %}
-      {% set middleware_insecure_list = middleware_list+', www-redirect-insecure@file' %}
+      {% set middleware_insecure_list = middleware_insecure_list+', www-redirect-insecure@file' %}
     {% endif %}
   {% endif %}
   {% if http_auth_enable  and http_auth_string is defined %}
-    {% set middleware_list = middleware_list+', '+sitename_hyphened+'-auth' %}
+    {% set middleware_list = middleware_list+', '+sitename_hyphened+'-bitrix-auth' %}
     {% if not ssl_redirect %}
-      {% set middleware_list = middleware_list+', '+sitename_hyphened+'-auth' %}
+      {% set middleware_insecure_list = middleware_insecure_list+', '+sitename_hyphened+'-bitrix-auth' %}
     {% endif %}
   {% endif %}
 
@@ -71,8 +71,9 @@
       - "traefik.http.middlewares.{{ sitename_hyphened }}-auth.basicauth.users={{ http_auth_string }}"
 {% endif %}
     volumes:
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
       - {{ sites_dir }}/{{ sitename }}/config/nginx:/etc/nginx/conf.d:ro
-      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 
 {% if backend_type == 'apache' %}
@@ -87,7 +88,9 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
+      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/var/www/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% else %}
@@ -102,8 +105,10 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
+      - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/etc/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
-      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/wwwroot
+      - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% endif %}
 
@@ -121,11 +126,13 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
+      - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:
       - MYSQL_ROOT_PASSWORD={{ db_root_password }}
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
+      - TZ={{ timezone }}
 {% elif db_type == 'postgresql' %}
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
@@ -141,6 +148,7 @@
       - POSTGRES_DB={{ db_name }}
       - POSTGRES_USER={{ db_user }}
       - POSTGRES_PASSWORD={{ db_password }}
+      - TZ={{ timezone }}
 {% else %}
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
@@ -155,11 +163,13 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
+      - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:
       - MYSQL_ROOT_PASSWORD={{ db_root_password }}
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
+      - TZ={{ timezone }}
 {% endif %}
 
 {% endfor %}

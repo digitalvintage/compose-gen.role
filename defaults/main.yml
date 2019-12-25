@@ -9,10 +9,11 @@ storage_dir: "/var/data"
 sites_dir: "/var/www"
 docker_network: "net-webapps"
 acme_email: "admin@example.com"
+timezone: "Europe/Moscow"
 overwrite_php_ini: yes
 default_tld: "example.com"
 default_password: "password"
-default_auth_string: "user:$apr1$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
+default_auth_string: "user:$$apr1$$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
 # Set to 'false' if you want run 'docker-compose up -d' by yourself
 update_compose: true
@@ -27,6 +28,17 @@ default_add_www_host: true
 default_www_redirect: true
 default_php_error_reporting: false
 default_php_mbstring_overload: "0"
+default_bitrix_composite_mode: false
+
+# msmtp common settings
+default_msmtp_host: "smtp.{{ default_tld }}"
+default_msmtp_port: 465
+default_msmtp_email: "noreply@{{ default_tld }}"
+default_msmtp_auth: true
+default_msmtp_login: "noreply@{{ default_tld }}"
+default_msmtp_password: "{{ default_password }}"
+default_msmtp_tls: true
+default_msmtp_starttls: false
 
 #  Dependent common variables
 cloudstorage_dir: "{{ sites_dir }}"
@@ -112,6 +124,43 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    db_user: "{{ sitename-hyphened }}"
 #    db_password: "{{ default_password }}"
 #    db_root_password: "{{ default_password }}"
+#    db_slowlog: false
+#    msmtp_host: "smtp.{{ default_tld }}"
+#    msmtp_port: 465
+#    msmtp_email: "noreply@{{ default_tld }}"
+#    msmtp_auth: true
+#    msmtp_login: "noreply@{{ default_tld }}"
+#    msmtp_password: "{{ default_password }}"
+#    msmtp_tls: true
+#    msmtp_starttls: false
+#
+# Bitrix instance config (only Apache supported, based on Bitrix Env)
+# bitrixsites:
+#  - sitename: "bitrix.{{ default_tld }}"
+#    ssl_enable: "{{ default_ssl_enable }}"
+#    ssl_redirect:  "{{ default_ssl_redirect }}"
+#    add_www_host: "{{ default_add_www_host }}"
+#    www_redirect: "{{ default_www_redirect }}"
+#    extended_security_headers: false
+#    http_auth_enable: false
+#    http_auth_string: "{{ default_auth_string }}"
+#    php_version: "{{ default_php_version }}"
+#    php_error_reporting: "{{ default_php_error_reporting }}"
+#    db_name: "bitrix"
+#    db_user: "bitrix"
+#    db_password: "{{ default_password }}"
+#    db_root_password: "{{ default_password }}"
+#    db_slowlog: false
+#    composite_mode: false
+#    memcached_enable: false
+#    msmtp_host: "smtp.{{ default_tld }}"
+#    msmtp_port: 465
+#    msmtp_email: "noreply@{{ default_tld }}"
+#    msmtp_auth: true
+#    msmtp_login: "noreply@{{ default_tld }}"
+#    msmtp_password: "{{ default_password }}"
+#    msmtp_tls: true
+#    msmtp_starttls: false
 #
 # Cloud storage (Nextcloud based) config
 # cloudstorages:
@@ -125,19 +174,3 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    db_name: "nextcloud"
 #    db_user: "nextcloud"
 #    db_password: "{{ default_password }}"
-#
-# Bitrix instance config (only Apache supported, based on Bitrix Env)
-# bitrices:
-#  - sitename: "bitrix.{{ default_tld }}"
-#    ssl_enable: "{{ default_ssl_enable }}"
-#    ssl_redirect:  "{{ default_ssl_redirect }}"
-#    add_www_host: "{{ default_add_www_host }}"
-#    www_redirect: "{{ default_www_redirect }}"
-#    php_version: "{{ default_php_version }}"
-#    php_error_reporting: "{{ default_php_error_reporting }}"
-#    db_type: "{{ default_db_type }}" | "percona" | "mysql" | "postgresql"
-#    db_name: "bitrix"
-#    db_user: "bitrix"
-#    db_password: "{{ default_password }}"
-#    db_root_password: "{{ default_password }}"
-#    memcached_enable: true

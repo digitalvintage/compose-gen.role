@@ -1,0 +1,38 @@
+- name: Create Docker images directory
+  file:
+    path: "{{compose_dir}}/images"
+    state: directory
+    mode: "0755"
+
+- name: Create contexts for nginx with push_stream module
+  file:
+    path: "{{compose_dir}}/images/nginx-push-stream"
+    state: directory
+    mode: "0755"
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+
+- name: Generate Dockerfiles for nginx with push_stream module
+  template:
+    src: "bitrix/dockerfile-nginx.j2"
+    dest: "{{compose_dir}}/images/nginx-push-stream/Dockerfile"
+    force: yes
+    backup: yes
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  notify: compose_update
+
+
+- name: Create contexts for php/apache backends
+  file:
+    path: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-bitrix"
+    state: directory
+    mode: "0755"
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+
+- name: Generate Dockerfiles for php/apache backends
+  template:
+    src: "bitrix/dockerfile-bitrix.j2"
+    dest: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-bitrix/Dockerfile"
+    force: yes
+    backup: yes
+  loop: "{{ bitrixsites | flatten(levels=1) }}"
+  notify: compose_update

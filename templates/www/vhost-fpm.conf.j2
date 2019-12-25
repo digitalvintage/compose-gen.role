@@ -3,7 +3,7 @@
 
 {% set sitename = item.sitename %}
 server {
-    set $root_path /var/www/wwwroot;
+    set $root_path /var/www/html;
     index index.php index.html index.htm;
     disable_symlinks if_not_owner from=$root_path;
     access_log /var/www/log/nginx-access.log;

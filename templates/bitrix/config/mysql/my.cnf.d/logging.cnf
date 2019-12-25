@@ -1,0 +1,10 @@
+[mysqld_safe]
+log-error                       = /var/www/log/mysql/error.log
+
+[mysqld]
+log-error                       = /var/www/log/mysql/error.log
+{% if item[1].db_slowlog | default (false) %}
+slow-query-log-file            = /var/www/log/mysql/slow.log
+{% endif %}
+
+log_timestamps = SYSTEM

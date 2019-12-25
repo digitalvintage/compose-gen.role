@@ -6,6 +6,8 @@
     path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
     state: directory
     mode: "0755"
+    owner: www-data
+    group: www-data
   with_nested:
     - "{{ websites | flatten(levels=1) }}"
     - ["wwwroot", "db", "config", "config/nginx", "config/php", "log"]
@@ -17,19 +19,20 @@
     state: "present"
     shell: "/sbin/nologin"
     home: "{{ sites_dir }}"
-  loop: "{{ websites | flatten(levels=1) }}"
   when:
     - item.db_type | default (default_db_type) == "percona"
     - item.db_type | default (default_db_type) == "mysql"
 
-- name: Create database directories for MySQL/Percona
+- name: Create database and log directories for Percona/MySQL
   file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/db/mysql"
+    path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
     state: directory
     mode: "0755"
     owner: polkitd
     group: mysql
-  loop: "{{ websites | flatten(levels=1) }}"
+  with_nested:
+    - "{{ websites | flatten(levels=1) }}"
+    - ["db/mysql", "log/mysql"]
   when:
     - item.db_type | default (default_db_type) == "percona"
     - item.db_type | default (default_db_type) == "mysql"
@@ -51,6 +54,34 @@
   notify: init_site
   changed_when: site_to_init.matched == 0
 
+- name: Check/Create config directory structure
+  file:
+    path: "{{ sites_dir }}/{{ item[1].sitename }}/config/{{ item[0].path }}"
+    state: directory
+  with_nested:
+    - "{{ query('filetree', '../templates/www/config') }}"
+    - "{{ websites | flatten(levels=1) }}"
+  when: item[0].state == 'directory'
+
+- name: Generate common config files for Web Site
+  template:
+    src: "{{ item[0].src }}"
+    dest: "{{ sites_dir }}/{{ item[1].sitename }}/config/{{ item[0].path }}"
+  with_nested:
+    - "{{ query('filetree', '../templates/www/config') }}"
+    - "{{ websites | flatten(levels=1) }}"
+  register: handle_restart_backend_config
+  notify: restart_backend
+  when: item[0].state == 'file'
+
+- name: Generate /etc/hosts
+  template:
+    src: "common/etc-hosts.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/hosts"
+    force: no
+    backup: no
+  loop: "{{ websites | flatten(levels=1) }}"
+
 - name: Generate nginx configuration files for php-fpm
   template:
     src: "www/vhost-fpm.conf.j2"
@@ -61,6 +92,13 @@
   when: item.backend_type | default (default_backend_type) == "fpm"
   register: handle_restart_frontend_fpm
   notify: restart_frontend
+
+- name: Remove unnecessary configuration for apache
+  file:
+    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    state: absent
+  loop: "{{ websites | flatten(levels=1) }}"
+  when: item.backend_type | default (default_backend_type) == "fpm"
 
 - name: Generate nginx configuration files for apache
   template:
@@ -80,19 +118,15 @@
   loop: "{{ websites | flatten(levels=1) }}"
   when: item.backend_type | default (default_backend_type) == "apache"
 
-- name: Remove unnecessary configuration for apache
-  file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
-    state: absent
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "fpm"
-
-- name: Generate php configuration file
+- name: Generate msmtp configuration files
   template:
-    src: "www/php.ini.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/php/php.ini"
-    force: "{{ overwrite_php_ini }}"
-    backup: "{{ overwrite_php_ini }}"
+    src: "common/msmtprc.j2"
+    dest: "{{ sites_dir }}/{{ item.sitename }}/config/msmtprc"
+    force: yes
+    backup: no
+    mode: "0600"
+    owner: www-data
+    group: www-data
   loop: "{{ websites | flatten(levels=1) }}"
-  register: handle_restart_backend_php
+  register: handle_restart_backend_msmtp
   notify: restart_backend
