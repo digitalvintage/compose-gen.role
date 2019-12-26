@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
         curl \
         wget \
         git \
-	msmtp \
+    	msmtp \
         libcurl4-openssl-dev \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
         libzip-dev \
         libbz2-dev \
         libgmp3-dev \
+        libmemcached-dev \
         libmpfr-dev \
         libicu-dev \
         libc-client-dev \
@@ -62,6 +63,7 @@ RUN apt-get update && apt-get install -y \
         apcu \
         igbinary \
         mcrypt \
+        memcached \
         msgpack \
         mysqlnd \
         redis \
@@ -69,6 +71,7 @@ RUN apt-get update && apt-get install -y \
         apcu \
         igbinary \
         mcrypt \
+        memcached \
         msgpack \
         redis \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
