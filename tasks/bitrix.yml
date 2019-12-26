@@ -15,6 +15,13 @@
     - "config/nginx"
     - "log"
 
+- name: "{{ site.sitename }} - Check if instance needs to be initialized"
+  find:
+    paths: "{{ sites_dir }}/{{ site.sitename }}-bitrix/wwwroot"
+  register: bitrix_to_init
+  notify: init_bitrix
+  changed_when: bitrix_to_init.matched == 0
+
 - name: "{{ site.sitename }} - Create database and log directories for Percona"
   file:
     path: "{{ sites_dir }}/{{ site.sitename }}-bitrix/{{ item }}"
@@ -25,13 +32,6 @@
   loop:
     - "db/mysql"
     - "log/mysql"
-
-- name: "{{ site.sitename }} - Check if instance needs to be initialized"
-  find:
-    paths: "{{ sites_dir }}/{{ site.sitename }}-bitrix/wwwroot"
-  register: bitrix_to_init
-  notify: init_bitrix
-  changed_when: bitrix_to_init.matched == 0
 
 - name: "{{ site.sitename }} - Check/Create config directory structure"
   file:

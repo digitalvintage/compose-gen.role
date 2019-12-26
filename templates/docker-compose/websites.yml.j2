@@ -90,6 +90,7 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - {{ sites_dir }}/{{ sitename }}/config/hosts:/etc/hosts:ro
+      - {{ sites_dir }}/{{ sitename }}/config/httpd:/etc/apache2:ro
       - {{ sites_dir }}/{{ sitename }}/config/php/php.ini:/usr/local/etc/php/php.ini
       - {{ sites_dir }}/{{ sitename }}/config/msmtprc:/var/www/msmtprc:ro
       - {{ sites_dir }}/{{ sitename }}/wwwroot:/var/www/html
@@ -113,7 +114,27 @@
       - {{ sites_dir }}/{{ sitename }}/log:/var/www/log
 {% endif %}
 
-{% if db_type == 'mysql' %}
+{% if db_type == 'postgresql' %}
+  {{ sitename }}-db:
+    container_name: '{{ sitename }}-db'
+    image: postgres
+    command: "-c logging_collector=on -c log_directory='/var/log/postgresql'"
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 5432
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/db/postgresql:/var/lib/postgresql/data
+      - {{ sites_dir }}/{{ sitename }}/log/postgresql:/var/log/postgresql
+    environment:
+      - POSTGRES_DB={{ db_name }}
+      - POSTGRES_USER={{ db_user }}
+      - POSTGRES_PASSWORD={{ db_password }}
+      - TZ={{ timezone }}
+{% elif db_type == 'mysql' %}
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
     image: mysql
@@ -125,6 +146,8 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/mysql/my.cnf:/etc/my.cnf:ro
+      - {{ sites_dir }}/{{ sitename }}/config/mysql/my.cnf.d:/etc/my.cnf.d:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
       - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:
@@ -132,22 +155,6 @@
       - MYSQL_PASSWORD={{ db_password }}
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
-      - TZ={{ timezone }}
-{% elif db_type == 'postgresql' %}
-  {{ sitename }}-db:
-    container_name: '{{ sitename }}-db'
-    image: postgres
-    restart: always
-    networks:
-      - {{ docker_network }}
-    expose:
-      - 5432
-    volumes:
-      - {{ sites_dir }}/{{ sitename }}/db/postgresql:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB={{ db_name }}
-      - POSTGRES_USER={{ db_user }}
-      - POSTGRES_PASSWORD={{ db_password }}
       - TZ={{ timezone }}
 {% else %}
   {{ sitename }}-db:
@@ -161,6 +168,8 @@
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - {{ sites_dir }}/{{ sitename }}/config/mysql/my.cnf:/etc/my.cnf:ro
+      - {{ sites_dir }}/{{ sitename }}/config/mysql/my.cnf.d:/etc/my.cnf.d:ro
       - {{ sites_dir }}/{{ sitename }}/db/mysql:/var/lib/mysql
       - {{ sites_dir }}/{{ sitename }}/log/mysql:/var/www/log/mysql
     environment:

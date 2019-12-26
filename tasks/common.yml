@@ -26,3 +26,11 @@
     state: "present"
     shell: "/sbin/nologin"
     home: "{{ sites_dir }}"
+
+- name: Create user 'postgres' for PostreSQL
+  user:
+    name: "postgres"
+    comment: "PostreSQL user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
