@@ -15,6 +15,8 @@
   {% set db_user = item.db_user | default (item.sitename) | replace('.','-') %}
   {% set db_password = item.db_password | default (default_password) %}
   {% set db_root_password = item.db_root_password | default (default_db_root_password) %}
+  {% set memcached_enable = item.memcached_enable | default (default_memcached_enable) %}
+  {% set redis_enable = item.redis_enable | default (default_redis_enable) %}
   {% if extended_security_headers %}
     {% set middleware_list = 'security-headers-a-plus@file' %}
     {% set middleware_insecure_list = 'security-headers-a-plus@file' %}
@@ -116,7 +118,6 @@
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
     image: mysql
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: always
     networks:
       - {{ docker_network }}
@@ -153,7 +154,6 @@
   {{ sitename }}-db:
     container_name: '{{ sitename }}-db'
     image: percona
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: always
     networks:
       - {{ docker_network }}
@@ -170,6 +170,28 @@
       - MYSQL_DATABASE={{ db_name }}
       - MYSQL_USER={{ db_user }}
       - TZ={{ timezone }}
-{% endif %}
 
+{% endif %}
+{% if redis_enable %}
+  {{ sitename }}-redis:
+    container_name: '{{ sitename }}-redis'
+    image: redis
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 6379
+
+{% endif %}
+{% if memcached_enable %}
+  {{ sitename }}-memcached:
+    container_name: '{{ sitename }}-memcached'
+    image: memcached
+    restart: always
+    networks:
+      - {{ docker_network }}
+    expose:
+      - 11211
+
+{% endif %}
 {% endfor %}

@@ -21,14 +21,14 @@
   notify: compose_update
 
 
-- name: Create contexts for php/apache backends
+- name: Create contexts for Bitrix (php/apache) backends
   file:
     path: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-bitrix"
     state: directory
     mode: "0755"
   loop: "{{ bitrixsites | flatten(levels=1) }}"
 
-- name: Generate Dockerfiles for php/apache backends
+- name: Generate Dockerfiles for Bitrix (php/apache) backends
   template:
     src: "bitrix/dockerfile-bitrix.j2"
     dest: "{{compose_dir}}/images/php-{{ item.backend_php_version | default (default_php_version) }}-bitrix/Dockerfile"

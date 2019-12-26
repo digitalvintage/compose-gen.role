@@ -27,19 +27,19 @@
 
 # Tick stack monitoring configuration
 - include: monitoring.yml
-  when: monitoring_enabled
+  when: monitoring_enable
 
 # Nextcloud (Main instance) configuration
 - include: nextcloud.yml
-  when: nextcloud_enabled
+  when: nextcloud_enable
 
 # Plex configuration
 - include: plex.yml
-  when: plex_enabled
+  when: plex_enable
 
 # Transmission configuration
 - include: transmission.yml
-  when: transmission_enabled
+  when: transmission_enable
 
 # NFS Server configuration
 - include: nfs.yml

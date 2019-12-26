@@ -29,6 +29,8 @@ default_www_redirect: true
 default_php_error_reporting: false
 default_php_mbstring_overload: "0"
 default_bitrix_composite_mode: false
+default_redis_enable: false
+default_memcached_enable: false
 
 # msmtp common settings
 default_msmtp_host: "smtp.{{ default_tld }}"
@@ -52,7 +54,7 @@ traefik_ssl_enable: "{{ default_ssl_enable }}"
 traefik_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Tick Stack monitoring config
-monitoring_enabled: true
+monitoring_enable: true
 monitoring_sitename: "monitoring.{{ default_tld }}"
 monitoring_dashboard_auth_string: "{{ default_auth_string }}"
 monitoring_influx_admin_user: "influx"
@@ -65,7 +67,7 @@ monitoring_ssl_enable: "{{ default_ssl_enable }}"
 monitoring_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Main Nextcloud instance config (Transmission and Plex will work only with this instance)
-nextcloud_enabled: false
+nextcloud_enable: false
 nextcloud_sitename: "storage.{{ default_tld }}"
 nextcloud_admin_login: "admin"
 nextcloud_admin_password: "{{ default_password }}"
@@ -79,7 +81,7 @@ nextcloud_ssl_redirect: "{{ default_ssl_redirect }}"
 #  - books
 
 # Plex Mediaserver config
-plex_enabled: false
+plex_enable: false
 plex_sitename: "plex.{{ default_tld }}"
 plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
 plex_storage_dir: "{{ storage_dir }}/public"
@@ -87,7 +89,7 @@ plex_ssl_enable: "{{ default_ssl_enable }}"
 plex_ssl_redirect: "{{ default_ssl_redirect }}"
 
 # Transmission bit-torrent client config
-transmission_enabled: false
+transmission_enable: false
 transmission_sitename: "loader.{{ default_tld }}"
 transmission_dashboard_auth_string: "{{ default_auth_string }}"
 transmission_torrent_port: 54321
@@ -125,6 +127,8 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    db_password: "{{ default_password }}"
 #    db_root_password: "{{ default_password }}"
 #    db_slowlog: false
+#    redis_enable: false
+#    memcached_enable: false
 #    msmtp_host: "smtp.{{ default_tld }}"
 #    msmtp_port: 465
 #    msmtp_email: "noreply@{{ default_tld }}"
