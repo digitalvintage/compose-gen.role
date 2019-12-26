@@ -1,29 +1,28 @@
 ---
 # Cloud storages configuration
-- name: Create Cloud storages directory tree
+- name: "{{ site.sitename }} - Create Cloud storages directory tree"
   file:
-    path: "{{ cloudstorage_dir }}/{{ item[0].sitename }}-nextcloud/{{ item[1] }}"
+    path: "{{ cloudstorage_dir }}/{{ site.sitename }}-nextcloud/{{ item }}"
     state: directory
     mode: "0755"
     owner: www-data
     group: www-data
-  with_nested:
-    - "{{ cloudstorages | flatten(levels=1) }}"
-    - ["data", "app", "nginx"]
+  loop:
+    - "data"
+    - "app"
+    - "nginx"
 
-- name: Create Cloud storages database directories
+- name: "{{ site.sitename }} - Create Cloud storages database directories"
   file:
-    path: "{{ cloudstorage_dir }}/{{ item.sitename }}-nextcloud/db"
+    path: "{{ cloudstorage_dir }}/{{ site.sitename }}-nextcloud/db"
     state: directory
     mode: "0755"
-  loop: "{{ cloudstorages | flatten(levels=1) }}"
 
-- name: Generate nginx configuration file for Cloud storages
+- name: "{{ site.sitename }} - Generate nginx configuration file for Cloud storages"
   template:
     src: "cloudstorage/nginx.conf.j2"
-    dest: "{{ cloudstorage_dir }}/{{ item.sitename }}-nextcloud/nginx/nginx.conf"
+    dest: "{{ cloudstorage_dir }}/{{ site.sitename }}-nextcloud/nginx/nginx.conf"
     force: yes
     backup: yes
-  loop: "{{ cloudstorages | flatten(levels=1) }}"
   register: handle_restart_storage
   notify: restart_cloudstorage

@@ -1,28 +1,27 @@
-{% for item in cloudstorages %}
-  {% set sitename = item.sitename %}
-  {% set sitename_hyphened = item.sitename | replace('.','-') %}
-  {% set ssl_enable = item.ssl_enable | default (default_ssl_enable) %}
-  {% set ssl_redirect = item.ssl_redirect | default (default_ssl_redirect) %}
-  {% set add_www_host = item.add_www_host | default (default_add_www_host) %}
-  {% set www_redirect = item.www_redirect | default (default_www_redirect) %}
-  {% set admin_login = item.admin_login | default ('admin') %}
-  {% set admin_password = item.admin_password | default (default_password) %}
-  {% set db_name = item.db_name | default ('nextcloud') | replace('.','-') %}
-  {% set db_user = item.db_user | default ('nextcloud') | replace('.','-') %}
-  {% set db_password = item.db_password | default (default_password) %}
-  {% set middleware_list = 'security-headers-a@file' %}
-  {% set middleware_insecure_list = 'security-headers-a@file' %}
-  {% if ssl_redirect and ssl_enable %}
-    {% set middleware_insecure_list = middleware_insecure_list+', https-redirect@file' %}
+{% set sitename = item.sitename %}
+{% set sitename_hyphened = item.sitename | replace('.','-') %}
+{% set ssl_enable = item.ssl_enable | default (default_ssl_enable) %}
+{% set ssl_redirect = item.ssl_redirect | default (default_ssl_redirect) %}
+{% set add_www_host = item.add_www_host | default (default_add_www_host) %}
+{% set www_redirect = item.www_redirect | default (default_www_redirect) %}
+{% set admin_login = item.admin_login | default ('admin') %}
+{% set admin_password = item.admin_password | default (default_password) %}
+{% set db_name = item.db_name | default ('nextcloud') | replace('.','-') %}
+{% set db_user = item.db_user | default ('nextcloud') | replace('.','-') %}
+{% set db_password = item.db_password | default (default_password) %}
+{% set middleware_list = 'security-headers-a@file' %}
+{% set middleware_insecure_list = 'security-headers-a@file' %}
+{% if ssl_redirect and ssl_enable %}
+  {% set middleware_insecure_list = middleware_insecure_list+', https-redirect@file' %}
+{% endif %}
+{% if www_redirect and add_www_host %}
+  {% set middleware_list = middleware_list+', www-redirect@file' %}
+  {% if not ssl_redirect %}
+    {% set middleware_insecure_list = middleware_insecure_list+', www-redirect-insecure@file' %}
   {% endif %}
-  {% if www_redirect and add_www_host %}
-    {% set middleware_list = middleware_list+', www-redirect@file' %}
-    {% if not ssl_redirect %}
-      {% set middleware_insecure_list = middleware_insecure_list+', www-redirect-insecure@file' %}
-    {% endif %}
-  {% endif %}
+{% endif %}
 
-# {{ sitename }}-nextcloud
+# {{ sitename }} (Application: Nextcloud)
   {{ sitename }}-nextcloud-db:
     container_name: '{{ sitename }}-nextcloud-db'
     image: postgres
@@ -144,5 +143,3 @@
       - POSTGRES_DB={{ db_name }}
       - POSTGRES_USER={{ db_user }}
       - POSTGRES_PASSWORD={{ db_password }}
-
-{% endfor %}

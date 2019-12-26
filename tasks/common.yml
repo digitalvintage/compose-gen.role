@@ -1,0 +1,28 @@
+# Common tasks
+- name: Create working directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0775"
+  loop:
+    - "{{ compose_dir }}"
+    - "{{ base_dir }}"
+    - "{{ storage_dir }}"
+    - "{{ sites_dir }}"
+    - "{{ cloudstorage_dir }}"
+
+- name: Create user 'www-data'
+  user:
+    name: "www-data"
+    comment: "Web Services user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"
+
+- name: Create user 'mysql' for MySQL/Percona
+  user:
+    name: "mysql"
+    comment: "MySQL/Percona user"
+    state: "present"
+    shell: "/sbin/nologin"
+    home: "{{ sites_dir }}"

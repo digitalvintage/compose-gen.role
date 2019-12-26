@@ -2,25 +2,7 @@
 # tasks file for compose-gen.role
 
 # Common tasks
-- name: Create user 'www-data'
-  user:
-    name: "www-data"
-    comment: "Web Services user"
-    state: "present"
-    shell: "/sbin/nologin"
-    home: "{{ sites_dir }}"
-
-- name: Create working directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: "0775"
-  loop:
-    - "{{ compose_dir }}"
-    - "{{ base_dir }}"
-    - "{{ storage_dir }}"
-    - "{{ sites_dir }}"
-    - "{{ cloudstorage_dir }}"
+- include: common.yml
 
 # Traefik configuration
 - include: traefik.yml
@@ -47,21 +29,46 @@
 
 # Web sites configuration
 - include: websites-dockerimages.yml
-  when: websites is defined
+  loop: "{{ websites | flatten(levels=1) }}"
+  loop_control:
+    loop_var: site
+  when:
+    - websites is defined
+    - site.application |default (default_application) == "generic"
 
 - include: websites.yml
-  when: websites is defined
+  loop: "{{ websites | flatten(levels=1) }}"
+  loop_control:
+    loop_var: site
+  when:
+    - websites is defined
+    - site.application |default (default_application) == "generic"
 
 # Bitrix-based web sites configuration
 - include: bitrix.yml
-  when: bitrixsites is defined
+  loop: "{{ websites | flatten(levels=1) }}"
+  loop_control:
+    loop_var: site
+  when:
+    - websites is defined
+    - site.application |default (default_application) == "bitrix"
 
 - include: bitrix-dockerimages.yml
-  when: bitrixsites is defined
+  loop: "{{ websites | flatten(levels=1) }}"
+  loop_control:
+    loop_var: site
+  when:
+    - websites is defined
+    - site.application |default (default_application) == "bitrix"
 
 # Cloud storage instances configuration
 - include: cloudstorages.yml
-  when: cloudstorages is defined
+  loop: "{{ websites | flatten(levels=1) }}"
+  loop_control:
+    loop_var: site
+  when:
+    - websites is defined
+    - site.application |default (default_application) == "nextcloud"
 
 # Generate docker-compose file
 - name: Generate docker-compose
