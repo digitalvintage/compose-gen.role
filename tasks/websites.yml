@@ -16,26 +16,6 @@
     - "config/php"
     - "log"
 
-- name: "{{ site.sitename }} - Create database and log directories for Percona/MySQL"
-  file:
-    path: "{{ sites_dir }}/{{ site.sitename }}/{{ item[1] }}"
-    state: directory
-    mode: "0755"
-    owner: polkitd
-    group: mysql
-  loop:
-    - "db/mysql"
-    - "log/mysql"
-  when: site.db_type | default (default_db_type) == "percona" or
-        site.db_type | default (default_db_type) == "mysql"
-
-- name: "{{ site.sitename }} - Create database directories for PostgreSQL"
-  file:
-    path: "{{ sites_dir }}/{{ site.sitename }}/db/postgresql"
-    state: directory
-    mode: "0755"
-  when: site.db_type | default (default_db_type) == "postgresql"
-
 - name: "{{ site.sitename }} - Check if Web site needs to be initialized"
   find:
     paths: "{{ sites_dir }}/{{ site.sitename }}/wwwroot"
@@ -43,21 +23,89 @@
   notify: init_site
   changed_when: site_to_init.matched == 0
 
-- name: "{{ site.sitename }} - Check/Create config directory structure"
+- name: "{{ site.sitename }} - Create database and log directories for Percona/MySQL"
   file:
-    path: "{{ sites_dir }}/{{ site.sitename }}/config/{{ item.path }}"
+    path: "{{ sites_dir }}/{{ site.sitename }}/{{ item }}"
     state: directory
-  loop: "{{ query('filetree', '../templates/www/config') }}"
-  when: item.state == 'directory'
+    mode: "0755"
+    owner: polkitd
+    group: mysql
+  loop:
+    - "db/mysql"
+    - "log/mysql"
+    - "config/mysql"
+  when: site.db_type | default (default_db_type) == "percona" or
+        site.db_type | default (default_db_type) == "mysql"
 
-- name: "{{ site.sitename }} - Generate common config files for Web Site"
+- name: "{{ site.sitename }} - Create database directories for PostgreSQL"
+  file:
+    path: "{{ sites_dir }}/{{ site.sitename }}/{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: postgres
+    group: postgres
+  loop:
+    - "db/postgresql"
+    - "log/postgresql"
+  when: site.db_type | default (default_db_type) == "postgresql"
+
+- name: "{{ site.sitename }} - Check/Create MySQL/Percona config directory structure"
+  file:
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/mysql/{{ item.path }}"
+    state: directory
+  loop: "{{ query('filetree', '../templates/www/config/mysql') }}"
+  when:
+    - item.state == 'directory'
+    - site.db_type | default (default_db_type) == "percona" or
+      site.db_type | default (default_db_type) == "mysql"
+
+- name: "{{ site.sitename }} - Generate MySQL/Percona config files for Web Site"
   template:
     src: "{{ item.src }}"
-    dest: "{{ sites_dir }}/{{ site.sitename }}/config/{{ item.path }}"
-  loop: "{{ query('filetree', '../templates/www/config') }}"
-  register: handle_restart_backend_config
-  notify: restart_backend
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/mysql/{{ item.path }}"
+  loop: "{{ query('filetree', '../templates/www/config/mysql') }}"
+  register: handle_restart_website_config
+  notify: restart_website
+  when:
+    - item.state == 'file'
+    - site.db_type | default (default_db_type) == "percona" or
+      site.db_type | default (default_db_type) == "mysql"
+
+- name: "{{ site.sitename }} - Check/Create php config directory structure"
+  file:
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/php/{{ item.path }}"
+    state: directory
+  loop: "{{ query('filetree', '../templates/www/config/php') }}"
+  when: item.state == 'directory'
+
+- name: "{{ site.sitename }} - Generate php config files for Web Site"
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/php/{{ item.path }}"
+  loop: "{{ query('filetree', '../templates/www/config/php') }}"
+  register: handle_restart_website_config
+  notify: restart_website
   when: item.state == 'file'
+
+- name: "{{ site.sitename }} - Check/Create Apache config directory structure"
+  file:
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/httpd/{{ item.path }}"
+    state: directory
+  loop: "{{ query('filetree', '../templates/www/config/httpd') }}"
+  when:
+    - item.state == 'directory'
+    - site.backend_type | default (default_backend_type) == "apache"
+
+- name: "{{ site.sitename }} - Generate Apache config files for Web Site"
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/httpd/{{ item.path }}"
+  loop: "{{ query('filetree', '../templates/www/config/httpd') }}"
+  register: handle_restart_website_config
+  notify: restart_website
+  when:
+    - item.state == 'file'
+    - site.backend_type | default (default_backend_type) == "apache"
 
 - name: "{{ site.sitename }} - Generate /etc/hosts"
   template:
@@ -73,8 +121,8 @@
     force: yes
     backup: yes
   when: site.backend_type | default (default_backend_type) == "fpm"
-  register: handle_restart_frontend_fpm
-  notify: restart_frontend
+  register: handle_restart_website_fpm
+  notify: restart_website
 
 - name: "{{ site.sitename }} - Remove unnecessary configuration for apache"
   file:
@@ -89,8 +137,8 @@
     force: yes
     backup: yes
   when: site.backend_type | default (default_backend_type) == "apache"
-  register: handle_restart_frontend_apache
-  notify: restart_frontend
+  register: handle_restart_website_apache
+  notify: restart_website
 
 - name: "{{ site.sitename }} - Remove unnecessary configuration for php-fpm"
   file:
@@ -107,5 +155,5 @@
     mode: "0600"
     owner: www-data
     group: www-data
-  register: handle_restart_backend_msmtp
-  notify: restart_backend
+  register: handle_restart_website_msmtp
+  notify: restart_website
