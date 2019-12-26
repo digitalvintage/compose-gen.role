@@ -1,4 +1,4 @@
-FROM php:{{ item.backend_php_version | default ('7.3')}}-apache
+FROM php:{{ site.backend_php_version | default ('7.3')}}-apache
 MAINTAINER Vitaly Prokofiev <vp@digitalvintage.ru>
 
 RUN apt-get update && apt-get install -y \

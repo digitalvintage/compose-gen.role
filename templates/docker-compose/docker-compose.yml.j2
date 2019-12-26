@@ -7,69 +7,59 @@ services:
 
 # Traefik Reverse proxy and certification facility
 {% include "docker-compose/traefik.yml.j2" with context %}
-
 {% if monitoring_enable %}
 
 # TICK Stack Based Monitoring System
 {% include "docker-compose/monitoring.yml.j2" with context %}
 {% endif %}
-
 {% if nextcloud_enable %}
 
 # Nextcloud Private Cloud Storage (Main Instance)
 {% include "docker-compose/nextcloud.yml.j2" with context %}
 {% endif %}
-
 {% if plex_enable %}
 
 # Plex Media Server
 {% include "docker-compose/plex.yml.j2" with context %}
 {% endif %}
-
 {% if transmission_enable %}
 
 # Transmission Torrent Client
 {% include "docker-compose/transmission.yml.j2" with context %}
 {% endif %}
-
 {% if nfs is defined %}
 
 # NFS Server
 {% include "docker-compose/nfs.yml.j2" with context %}
 {% endif %}
 
-{% if websites is defined %}
 # End of Services
 
+{% if websites is defined %}
+
 # Definition of Web Sites
+{% for item in websites %}
+{% if item.application | default (default_application) == "bitrix" %}
+{% include "docker-compose/bitrix.yml.j2" with context %}
+{% elif item.application | default (default_application) == "nextcloud" %}
+{% include "docker-compose/cloudstorage.yml.j2" with context %}
+{% else %}
 {% include "docker-compose/websites.yml.j2" with context %}
+{% endif %}
+{% endfor %}
+
 # End of Web Sites
 {% endif %}
-
-{% if bitrixsites is defined %}
-
-# Definition of Bitrix-based Web Sites
-{% include "docker-compose/bitrix.yml.j2" with context %}
-# End of Bitrix-based Web Sites
-{% endif %}
-
-{% if cloudstorages is defined %}
-
-# Definition of Cloud Storage instances
-{% include "docker-compose/cloudstorage.yml.j2" with context %}
-# End of Cloud Storage instances
-{% endif %}
-
 {% if nfs is defined or nextcloud_enable %}
+
 # Definition of Docker Volumes
 volumes:
 {% if nfs is defined %}
 {% include "docker-compose/nfs-volumes.yml.j2" with context %}
 {% endif %}
-
 {% if nextcloud_enable %}
 
-# NextCloud Private Cloud Storage Volmes (Main Instance)
+# NextCloud Private Cloud Storage VoluRjmes (Main Instance)
 {% include "docker-compose/nextcloud-volumes.yml.j2" with context %}
 # End of Cloud Storage volumes
 {% endif %}

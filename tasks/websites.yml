@@ -1,129 +1,111 @@
 ---
-# Web sites configuration
+# Web site configuration
 
-- name: Create Web sites directory tree
+- name: "{{ site.sitename }} - Create Web sites directory tree"
   file:
-    path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
+    path: "{{ sites_dir }}/{{ site.sitename }}/{{ item }}"
     state: directory
     mode: "0755"
     owner: www-data
     group: www-data
-  with_nested:
-    - "{{ websites | flatten(levels=1) }}"
-    - ["wwwroot", "db", "config", "config/nginx", "config/php", "log"]
+  loop:
+    - "wwwroot"
+    - "db"
+    - "config"
+    - "config/nginx"
+    - "config/php"
+    - "log"
 
-- name: Create user 'mysql' for MySQL/Percona
-  user:
-    name: "mysql"
-    comment: "MySQL/Percona user"
-    state: "present"
-    shell: "/sbin/nologin"
-    home: "{{ sites_dir }}"
-  when: item.db_type | default (default_db_type) == "percona" or
-        item.db_type | default (default_db_type) == "mysql"
-
-- name: Create database and log directories for Percona/MySQL
+- name: "{{ site.sitename }} - Create database and log directories for Percona/MySQL"
   file:
-    path: "{{ sites_dir }}/{{ item[0].sitename }}/{{ item[1] }}"
+    path: "{{ sites_dir }}/{{ site.sitename }}/{{ item[1] }}"
     state: directory
     mode: "0755"
     owner: polkitd
     group: mysql
-  with_nested:
-    - "{{ websites | flatten(levels=1) }}"
-    - ["db/mysql", "log/mysql"]
-  when: item[0].db_type | default (default_db_type) == "percona" or
-        item[0].db_type | default (default_db_type) == "mysql"
+  loop:
+    - "db/mysql"
+    - "log/mysql"
+  when: site.db_type | default (default_db_type) == "percona" or
+        site.db_type | default (default_db_type) == "mysql"
 
-- name: Create database directories for PostgreSQL
+- name: "{{ site.sitename }} - Create database directories for PostgreSQL"
   file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/db/postgresql"
+    path: "{{ sites_dir }}/{{ site.sitename }}/db/postgresql"
     state: directory
     mode: "0755"
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.db_type | default (default_db_type) == "postgresql"
+  when: site.db_type | default (default_db_type) == "postgresql"
 
-- name: Check if Web site needs to be initialized
+- name: "{{ site.sitename }} - Check if Web site needs to be initialized"
   find:
-    paths: "{{ sites_dir }}/{{ item.sitename }}/wwwroot"
+    paths: "{{ sites_dir }}/{{ site.sitename }}/wwwroot"
   register: site_to_init
-  loop: "{{ websites | flatten(levels=1) }}"
   notify: init_site
   changed_when: site_to_init.matched == 0
 
-- name: Check/Create config directory structure
+- name: "{{ site.sitename }} - Check/Create config directory structure"
   file:
-    path: "{{ sites_dir }}/{{ item[1].sitename }}/config/{{ item[0].path }}"
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/{{ item.path }}"
     state: directory
-  with_nested:
-    - "{{ query('filetree', '../templates/www/config') }}"
-    - "{{ websites | flatten(levels=1) }}"
-  when: item[0].state == 'directory'
+  loop: "{{ query('filetree', '../templates/www/config') }}"
+  when: item.state == 'directory'
 
-- name: Generate common config files for Web Site
+- name: "{{ site.sitename }} - Generate common config files for Web Site"
   template:
-    src: "{{ item[0].src }}"
-    dest: "{{ sites_dir }}/{{ item[1].sitename }}/config/{{ item[0].path }}"
-  with_nested:
-    - "{{ query('filetree', '../templates/www/config') }}"
-    - "{{ websites | flatten(levels=1) }}"
+    src: "{{ item.src }}"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/{{ item.path }}"
+  loop: "{{ query('filetree', '../templates/www/config') }}"
   register: handle_restart_backend_config
   notify: restart_backend
-  when: item[0].state == 'file'
+  when: item.state == 'file'
 
-- name: Generate /etc/hosts
+- name: "{{ site.sitename }} - Generate /etc/hosts"
   template:
     src: "common/etc-hosts.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/hosts"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/hosts"
     force: no
     backup: no
-  loop: "{{ websites | flatten(levels=1) }}"
 
-- name: Generate nginx configuration files for php-fpm
+- name: "{{ site.sitename }} - Generate nginx configuration files for php-fpm"
   template:
     src: "www/vhost-fpm.conf.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/nginx/vhost-fpm.conf"
     force: yes
     backup: yes
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "fpm"
+  when: site.backend_type | default (default_backend_type) == "fpm"
   register: handle_restart_frontend_fpm
   notify: restart_frontend
 
-- name: Remove unnecessary configuration for apache
+- name: "{{ site.sitename }} - Remove unnecessary configuration for apache"
   file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/nginx/vhost-apache.conf"
     state: absent
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "fpm"
+  when: site.backend_type | default (default_backend_type) == "fpm"
 
-- name: Generate nginx configuration files for apache
+- name: "{{ site.sitename }} - Generate nginx configuration files for apache"
   template:
     src: "www/vhost-apache.conf.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-apache.conf"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/nginx/vhost-apache.conf"
     force: yes
     backup: yes
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "apache"
+  when: site.backend_type | default (default_backend_type) == "apache"
   register: handle_restart_frontend_apache
   notify: restart_frontend
 
-- name: Remove unnecessary configuration for php-fpm
+- name: "{{ site.sitename }} - Remove unnecessary configuration for php-fpm"
   file:
-    path: "{{ sites_dir }}/{{ item.sitename }}/config/nginx/vhost-fpm.conf"
+    path: "{{ sites_dir }}/{{ site.sitename }}/config/nginx/vhost-fpm.conf"
     state: absent
-  loop: "{{ websites | flatten(levels=1) }}"
-  when: item.backend_type | default (default_backend_type) == "apache"
+  when: site.backend_type | default (default_backend_type) == "apache"
 
-- name: Generate msmtp configuration files
+- name: "{{ site.sitename }} - Generate msmtp configuration files"
   template:
     src: "common/msmtprc.j2"
-    dest: "{{ sites_dir }}/{{ item.sitename }}/config/msmtprc"
+    dest: "{{ sites_dir }}/{{ site.sitename }}/config/msmtprc"
     force: yes
     backup: no
     mode: "0600"
     owner: www-data
     group: www-data
-  loop: "{{ websites | flatten(levels=1) }}"
   register: handle_restart_backend_msmtp
   notify: restart_backend

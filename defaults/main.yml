@@ -15,13 +15,14 @@ default_tld: "example.com"
 default_password: "password"
 default_auth_string: "user:$$apr1$$.NIX7JLw$niiVFwT3ZX1Af2MqVgaSt/"
 
-# Set to 'false' if you want run 'docker-compose up -d' by yourself
+# Set to "false" if you want run "docker-compose up -d" by yourself
 update_compose: true
 
 # Common Defaults
-default_backend_type: 'fpm'
-default_php_version: '7.3'
-default_db_type: 'percona'
+default_application: "generic"
+default_backend_type: "fpm"
+default_php_version: "7.3"
+default_db_type: "percona"
 default_ssl_enable: true
 default_ssl_redirect: true
 default_add_www_host: true
@@ -109,7 +110,8 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #
 # Websites config
 # websites:
-#  - sitename: "example.com"
+#  - sitename: "{{ default_tld }}"
+#    application: "generic"
 #    ssl_enable: "{{ default_ssl_enable }}"
 #    ssl_redirect: true
 #    add_www_host: "{{ default_add_www_host }}"
@@ -138,9 +140,8 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    msmtp_tls: true
 #    msmtp_starttls: false
 #
-# Bitrix instance config (only Apache supported, based on Bitrix Env)
-# bitrixsites:
 #  - sitename: "bitrix.{{ default_tld }}"
+#    application: "bitrix"
 #    ssl_enable: "{{ default_ssl_enable }}"
 #    ssl_redirect:  "{{ default_ssl_redirect }}"
 #    add_www_host: "{{ default_add_www_host }}"
@@ -166,9 +167,8 @@ transmission_ssl_redirect: "{{ default_ssl_redirect }}"
 #    msmtp_tls: true
 #    msmtp_starttls: false
 #
-# Cloud storage (Nextcloud based) config
-# cloudstorages:
 #  - sitename: "storage2.{{ default_tld }}"
+#    application: "nextcloud"
 #    ssl_enable: "{{ default_ssl_enable }}"
 #    ssl_redirect:  "{{ default_ssl_redirect }}"
 #    add_www_host: "{{ default_add_www_host }}"

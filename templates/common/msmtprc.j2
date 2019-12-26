@@ -1,12 +1,12 @@
-{% set sitename = item.sitename %}
-{% set msmtp_host = item.msmtp_host | default (default_msmtp_host) %}
-{% set msmtp_port = item.msmtp_port | default (default_msmtp_port) %}
-{% set msmtp_email = item.msmtp_email | default (default_msmtp_email) %}
-{% set msmtp_auth = 'on' if item.msmtp_auth | default (default_msmtp_auth) else 'off' %}
-{% set msmtp_login = item.msmtp_login | default (msmtp_email) %}
-{% set msmtp_password = item.msmtp_password | default (default_msmtp_password) %}
-{% set msmtp_tls = 'on' if item.msmtp_tls | default (default_msmtp_tls) else 'off' %}
-{% set msmtp_starttls = 'on' if item.msmtp_starttls | default (default_msmtp_starttls) else 'off' %}
+{% set sitename = site.sitename %}
+{% set msmtp_host = site.msmtp_host | default (default_msmtp_host) %}
+{% set msmtp_port = site.msmtp_port | default (default_msmtp_port) %}
+{% set msmtp_email = site.msmtp_email | default (default_msmtp_email) %}
+{% set msmtp_auth = 'on' if site.msmtp_auth | default (default_msmtp_auth) else 'off' %}
+{% set msmtp_login = site.msmtp_login | default (msmtp_email) %}
+{% set msmtp_password = site.msmtp_password | default (default_msmtp_password) %}
+{% set msmtp_tls = 'on' if site.msmtp_tls | default (default_msmtp_tls) else 'off' %}
+{% set msmtp_starttls = 'on' if site.msmtp_starttls | default (default_msmtp_starttls) else 'off' %}
 # smtp account configuration for {{ sitename }}
 account {{ sitename }}
 logfile /var/www/log/msmtp.log
